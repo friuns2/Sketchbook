@@ -16,7 +16,12 @@ new Vue({
         },
         async sendInput() {
             if (this.inputText.trim() === '') return;
-            
+            let playerLookPoint = new THREE.Vector3();
+            player.getWorldPosition(playerLookPoint);
+            let direction = new THREE.Vector3(0, 0, -1);
+            direction.applyQuaternion(world.camera.quaternion);
+            playerLookPoint.add(direction.multiplyScalar(2));
+            playerLookPoint = JSON.stringify(playerLookPoint, (key, value) => typeof value === 'number' ? Number(value.toFixed(2)) : value);
             this.isLoading = true;
             const floatingCode = document.getElementById('floating-code');
             floatingCode.textContent = '';
@@ -27,7 +32,7 @@ new Vue({
                 const response = await getChatGPTResponse({
                     messages: [
                         { role: "system", content: settings.rules },
-                        { role: "user", content: `World.d.ts file:\n${worldDtsContent}\n\nCurrent code:\n${code}\n\nUpdate code below, Write JavaScript code that will; ${this.inputText}` }
+                        { role: "user", content: `World.d.ts file:\n${worldDtsContent}\n\nCurrent code:\n${code}\n\nUpdate code below, Use position: ${playerLookPoint}, Write JavaScript code that will; ${this.inputText}` }
                     ],
                     signal: abortController.signal
                 });

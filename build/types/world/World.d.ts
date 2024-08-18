@@ -44,7 +44,8 @@ export declare class World {
     scenarioGUIFolder: any;
     updatables: IUpdatable[];
     private lastScenarioID;
-    constructor(worldScenePath?: any);
+    constructor();
+    initialize(worldScenePath?: string): Promise<void>;
     update(timeStep: number, unscaledTimeStep: number): void;
     updatePhysics(timeStep: number): void;
     isOutOfBounds(position: CANNON.Vec3): boolean;
@@ -57,9 +58,9 @@ export declare class World {
      */
     render(world: World): void;
     setTimeScale(value: number): void;
-    add(worldEntity: IWorldEntity): void;
+    
     registerUpdatable(registree: IUpdatable): void;
-    remove(worldEntity: IWorldEntity): void;
+    
     unregisterUpdatable(registree: IUpdatable): void;
     loadScene(loadingManager: LoadingManager, gltf: any): void;
     launchScenario(scenarioID: string, loadingManager?: LoadingManager): void;

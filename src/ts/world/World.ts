@@ -67,7 +67,7 @@ export class World
 
 	private lastScenarioID: string;
 
-	constructor(worldScenePath?: any)
+	constructor()
 	{
 		const scope = this; 
 		// WebGL not supported
@@ -153,42 +153,37 @@ export class World
 		this.sky = new Sky(this);
 		
 		// Load scene if path is supplied
-		
-		if (worldScenePath !== undefined)
-		{
+	
+	}
+	async initialize(worldScenePath?: any) {
+		if (worldScenePath !== undefined) {
 			let loadingManager = this.loadingManager = new LoadingManager(this);
 
-			loadingManager.onFinishedCallback = () =>
-			{
-				this.update(1, 1);
-				this.setTimeScale(1);
-				UIManager.setUserInterfaceVisible(true);
-				return
-				Swal.fire({
-					title: 'Welcome to Sketchbook!',
-					text: 'Feel free to explore the world and interact with available vehicles. There are also various scenarios ready to launch from the right panel.',
-					footer: '<a href="https://github.com/swift502/Sketchbook" target="_blank">GitHub page</a><a href="https://discord.gg/fGuEqCe" target="_blank">Discord server</a>',
-					confirmButtonText: 'Okay',
-					buttonsStyling: false,
-					onClose: () => {
-						UIManager.setUserInterfaceVisible(true);
-					}
+			try {
+				const gltf = await new Promise((resolve, reject) => {
+					loadingManager.loadGLTF(worldScenePath, resolve);
 				});
-			};
-			loadingManager.loadGLTF(worldScenePath, (gltf) =>
-				{
-					this.loadScene(loadingManager, gltf);
-				}
-			);
-		}
-		else
-		{
+
+				this.loadScene(loadingManager, gltf);
+
+				await new Promise<void>((resolve) => {
+					loadingManager.onFinishedCallback = () => {
+						this.update(1, 1);
+						this.setTimeScale(1);
+						UIManager.setUserInterfaceVisible(true);
+						resolve();
+					};
+				});
+			} catch (error) {
+				console.error('Error loading GLTF:', error);
+			}
+		} else {
 			UIManager.setUserInterfaceVisible(true);
 			UIManager.setLoadingScreenVisible(false);
-			Swal.fire({
+			await Swal.fire({
 				icon: 'success',
 				title: 'Hello world!',
-				text: 'Empty Sketchbook world was succesfully initialized. Enjoy the blueness of the sky.',
+				text: 'Empty Sketchbook world was successfully initialized. Enjoy the blueness of the sky.',
 				buttonsStyling: false
 			});
 		}
