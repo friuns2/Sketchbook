@@ -1,4 +1,4 @@
-function cloneDepth3(obj, depth =3, clonedMap = new Map()) {
+function cloneDepth3(obj, depth = 3, clonedMap = new Map()) {
     if (depth === 0 || obj === null || typeof obj !== 'object') {
         return obj;
     }
@@ -56,21 +56,20 @@ function mergeSnapshot(target, source, depth =3) {
 
 
 const originalObject = {
-    a: 1,
+    a: [{a: 1}, {b: 2}, {c: 3}],
     b: {
         b1: null,
         b2: {
             b21: 3,
-            a: [{a: 1}, {b: 2}, {c: 3}],
+            
         },
     },
 };
-let b2 = originalObject.b2;
+let b2 = originalObject.a[1];
 
 console.log('Original:', JSON.stringify(originalObject));
 const s = cloneDepth3(originalObject);
 console.log('Snapshot:', JSON.stringify(s));
-originalObject.b.b2.a.push({d:4});
 mergeSnapshot(originalObject, s);
 console.log('Merged:', JSON.stringify(originalObject));
-console.log(b2 == originalObject.b.b2);
+console.log(b2 === originalObject.a[1]);
