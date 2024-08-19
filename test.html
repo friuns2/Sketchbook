@@ -1,6 +1,6 @@
 <script src="https://unpkg.com/acorn/dist/acorn.js"></script>
 <script src="https://unpkg.com/acorn-walk/dist/walk.js"></script>
-<script src="test2.js">
+<script src="objectProxy.js">
     function takeSnapshot(code, context) {
         const ast = acorn.parse(code, { ecmaVersion: 2020 });
         const modifiedVariables = [];
