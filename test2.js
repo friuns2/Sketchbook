@@ -1,4 +1,4 @@
-function cloneDepth3(obj, depth = 3, clonedMap = new Map()) {
+function cloneDepth3(obj, depth =3, clonedMap = new Map()) {
     if (depth === 0 || obj === null || typeof obj !== 'object') {
         return obj;
     }
@@ -7,29 +7,20 @@ function cloneDepth3(obj, depth = 3, clonedMap = new Map()) {
         return clonedMap.get(obj);
     }
 
-    let clonedObj;
-    if (Array.isArray(obj)) {
-        clonedObj = [];
-    } else if (obj instanceof Function) {
-        return obj;
-    } else {
-        clonedObj = Object.create(Object.getPrototypeOf(obj));
-    }
+    const clonedObj = Array.isArray(obj) ? [] : {};
     clonedMap.set(obj, clonedObj);
 
-    for (let key of Reflect.ownKeys(obj)) {
-        if (typeof obj[key] === 'function') {
-            clonedObj[key] = obj[key];
-        } else {
+    for (let key in obj) {
+        if (obj.hasOwnProperty(key)) {
             clonedObj[key] = cloneDepth3(obj[key], depth - 1, clonedMap);
         }
     }
 
     return clonedObj;
 }
-function mergeSnapshot(target, source, depth = 3) {
+function mergeSnapshot(target, source, depth =3) {
     if (depth === 0 || target === null || typeof target !== 'object' || source === null || typeof source !== 'object') {
-        return source;
+        return target;
     }
 
     for (let key in source) {
@@ -41,6 +32,19 @@ function mergeSnapshot(target, source, depth = 3) {
                     target[key] = {};
                 }
                 mergeSnapshot(target[key], source[key], depth - 1);
+            } else if (Array.isArray(source[key])) {
+                if (!Array.isArray(target[key])) {
+                    target[key] = [];
+                }
+                target[key].length = source[key].length;
+                for (let i = 0; i < source[key].length; i++) {
+                    if (typeof source[key][i] === 'object' && source[key][i] !== null) {
+                        target[key][i] = target[key][i] || {};
+                        mergeSnapshot(target[key][i], source[key][i], depth - 1);
+                    } else {
+                        target[key][i] = source[key][i];
+                    }
+                }
             } else {
                 target[key] = source[key];
             }
@@ -50,24 +54,18 @@ function mergeSnapshot(target, source, depth = 3) {
     return target;
 }
 
-class ExampleObject {
-    constructor() {
-        this.b = {
-            b1: null,
-            b2: {
-                b21: 3,
-                a: [{a: 1}, {b: 2}, {c: 3}],
-                b22: {
-                    b221: 4,
-                    b222: 5
-                }
-            }
-        };
-        
-    }
-}
 
-const originalObject = new ExampleObject();
+const originalObject = {
+    a: 1,
+    b: {
+        b1: null,
+        b2: {
+            b21: 3,
+            a: [{a: 1}, {b: 2}, {c: 3}],
+        },
+    },
+};
+let b2 = originalObject.b2;
 
 console.log('Original:', JSON.stringify(originalObject));
 const s = cloneDepth3(originalObject);
@@ -75,3 +73,4 @@ console.log('Snapshot:', JSON.stringify(s));
 originalObject.b.b2.a.push({d:4});
 mergeSnapshot(originalObject, s);
 console.log('Merged:', JSON.stringify(originalObject));
+console.log(b2 == originalObject.b.b2);
