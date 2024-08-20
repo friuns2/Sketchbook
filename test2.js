@@ -18,7 +18,7 @@ function cloneDepth3(obj, depth = 3, clonedMap = new Map()) {
 
     return clonedObj;
 }
-function mergeSnapshot(target, source, depth =3) {
+function mergeSnapshot(target, source, depth = 3) {
     if (depth === 0 || target === null || typeof target !== 'object' || source === null || typeof source !== 'object') {
         return target;
     }
@@ -28,22 +28,23 @@ function mergeSnapshot(target, source, depth =3) {
             if (source[key] === null) {
                 target[key] = null;
             } else if (typeof source[key] === 'object' && !Array.isArray(source[key])) {
-                if (!target[key] || typeof target[key] !== 'object') {
-                    target[key] = {};
+                if (target[key] && typeof target[key] === 'object') {
+                    mergeSnapshot(target[key], source[key], depth - 1);
+                } else {
+                    target[key] = source[key];
                 }
-                mergeSnapshot(target[key], source[key], depth - 1);
             } else if (Array.isArray(source[key])) {
-                if (!Array.isArray(target[key])) {
-                    target[key] = [];
-                }
-                target[key].length = source[key].length;
-                for (let i = 0; i < source[key].length; i++) {
-                    if (typeof source[key][i] === 'object' && source[key][i] !== null) {
-                        target[key][i] = target[key][i] || {};
-                        mergeSnapshot(target[key][i], source[key][i], depth - 1);
-                    } else {
-                        target[key][i] = source[key][i];
+                if (Array.isArray(target[key])) {
+                    target[key].length = source[key].length;
+                    for (let i = 0; i < source[key].length; i++) {
+                        if (typeof source[key][i] === 'object' && source[key][i] !== null && typeof target[key][i] === 'object') {
+                            mergeSnapshot(target[key][i], source[key][i], depth - 1);
+                        } else {
+                            target[key][i] = source[key][i];
+                        }
                     }
+                } else {
+                    target[key] = source[key];
                 }
             } else {
                 target[key] = source[key];

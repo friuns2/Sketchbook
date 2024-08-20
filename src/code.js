@@ -1,7 +1,4 @@
-globalThis.world = new World();
-console.log(s);
-await world.initialize('build/assets/world.glb');
+globalThis.world = new World('build/assets/world.glb');
+await world.initialize();
 globalThis.player = world.characters[0];
-globalThis.snapshot = cloneDepth3(world);
 player.takeControl();
-
