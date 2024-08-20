@@ -54,3 +54,4 @@ globalThis.EntityType = EntityType;
 
 import { VectorSpringSimulator } from './physics/spring_simulation/VectorSpringSimulator';
 globalThis.VectorSpringSimulator = VectorSpringSimulator;
+

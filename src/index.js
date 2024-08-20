@@ -1,15 +1,28 @@
-
-Vue.config.silent = true;
+originalConsoleError = console.error;
+//Vue.config.silent = true;
 let chat = {
 
     abortController: null,
     inputText: '',
-    lastText: '',
-    messages: [],
+    window: window,
     isLoading: false,
     params: {
+        messages: [],
         code: '',
+        codeChanged: function(){
+            console.log('codeChanged');
+            EvalWithDebug(chat.params.code);
+        },
+        lastText: ''        
     },
+    
+    get messages(){
+        return this.params.messages;
+    },
+    get isMobile(){
+        return window.innerWidth < 768;
+    },
+    lastError: '',
     suggestions: ['Add a red cube', 'Create a bouncing ball', 'Generate a 3D tree'],
     async init() {
         globalThis.world = new World();
@@ -18,14 +31,20 @@ let chat = {
         Save();
         player.takeControl();
         if (!this.params.code)
-            this.params.code = await fetch('src/code.js').then(response => response.text());
+            this.Clear();
         
-        Eval(this.params.code);
+        EvalWithDebug(this.params.code);
+
+        
     },
     async undoLastAction() {
 
         this.messages.pop();
         this.inputText = this.messages[this.messages.length - 1]?.user || '';
+    },
+    async Clear(){
+        this.params.code = await fetch('src/code.js').then(response => response.text());
+        Load();
     },
     async sendInput() {
 
@@ -36,20 +55,25 @@ let chat = {
         playerLookPoint.add(direction.multiplyScalar(2));
         playerLookPoint = JSON.stringify(playerLookPoint, (key, value) => typeof value === 'number' ? Number(value.toFixed(2)) : value);
         const floatingCode = document.getElementById('floating-code');
-        this.lastText = this.inputText || this.lastText;
+        this.params.lastText = this.inputText || this.params.lastText;
         this.inputText = '';
         this.abortController?.abort();
         this.abortController = new AbortController();
         this.isLoading = true;
         try {
-
             const worldDtsContent = await fetch('build/types/world/World.d.ts').then(response => response.text());
             const playerDtsContent = await fetch('build/types/characters/Character.d.ts').then(response => response.text());
+            
+            // Create a string with previous user messages
+            const previousUserMessages = this.messages.length && "Previous messages:\n" + this.messages
+                .filter(msg => msg.user)
+                .join('\n');
+            
             const response = await getChatGPTResponse({
                 messages: [
                     { role: "system", content: settings.rules },
                     { role: "system", content: `world.d.ts file for reference:\`\`\`javascript\n${worldDtsContent}\n\`\`\`\n\nplayer.d.ts file for reference:\`\`\`javascript\n${playerDtsContent}\n\`\`\`` },
-                    { role: "user", content: `Current code:\n\`\`\`javascript\n${this.params.code}\n\`\`\`\n\nUpdate code below, spawn position: ${playerLookPoint}, Rewrite JavaScript code that will; ${this.lastText}` }
+                    { role: "user", content: `Previous messages:\n${previousUserMessages}\n\nCurrent code:\n\`\`\`javascript\n${this.params.code}\n\`\`\`\n\nUpdate code below, spawn position: ${playerLookPoint}, Rewrite JavaScript code that will; ${this.params.lastText}` }
                 ],
                 signal: this.abortController.signal
             });
@@ -60,17 +84,17 @@ let chat = {
             console.log(floatingCode.textContent);
             let files = await parseFilesFromMessage(floatingCode.textContent);
             let content = files.files[0].content;
-            Eval(content);
             this.params.code = content;
-            if (this.messages[this.messages.length - 1] != this.lastText) {
-                this.messages.push({ user: this.lastText, ai: content });
+            if (this.messages[this.messages.length - 1]?.user != this.params.lastText) {
+                this.messages.push({ user: this.params.lastText });
             }
+            await EvalWithDebug(content);
         } catch (e) {
 
             var err = e.constructor('Error in Evaled Script: ' + e.message);
             // +3 because `err` has the line number of the `eval` line plus two.
             let lineNumber = e.lineNumber - err.lineNumber + 3;
-
+            
             console.error("Error executing code:", e, lineNumber);
 
 
@@ -91,14 +115,37 @@ let vue = chat = new Vue({
     watch,
     mounted
 });
+async function EvalWithDebug(...content) {
+    chat.lastError = '';
+    console.error = (...args) => {
+        chat.lastError = args.join(' ');
+        originalConsoleError(...args);
+    };
+    Eval(...content);
+    await new Promise(resolve => setTimeout(resolve, 500));
+    if (chat.lastError)
+        throw new Error(chat.lastError);
+}
 
-function Eval(content) {
+function Eval(...content) {
     Load();
     if(content.includes("world.update = "))
         throw new Error("world.update = function(){} is not allowed");
     
-    let code = content.substring(content.indexOf('player.takeControl();')).replace(/\b(const|let)\b/g, 'var');
+    var code = content.map(c => c
+        .substring(c.indexOf('player.takeControl();'))
+        .replace(/\blet\b/g, 'var')
+        .replace(/\bconst\b/g, 'var'))
+        .join('\n')
+        //+ ";debugger;";
     console.log(code);
     (0, eval)(code);
+    chat.params.code = code;
+
 }
 
+// Assuming you have a dat.GUI instance called 'gui'
+world.gui.add({ clear: function() { 
+    // Call your Clear function here
+    chat.Clear(); 
+}}, 'clear').name('Clear Canvas');

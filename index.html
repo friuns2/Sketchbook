@@ -27,7 +27,7 @@
         background: linear-gradient(to top, rgba(0,255,0,1) 0px, rgba(0,255,0,0) 100px);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        overflow: hidden;
+        overflow: visible;
         
     }
     .suggestion-bubble {
@@ -63,24 +63,26 @@
         </div>
         <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center">
             <div class="w-full max-w-xs relative" >
-                <div id="floating-code" class="floating-code" style="pointer-events: none;" ></div>
+                <pre id="floating-code" class="floating-code" style="pointer-events: none;" ></pre>
                 <div class="progress-circle w-6 h-6 mr-2" :class="{ hidden: !isLoading }"></div>
                 <div class="flex items-center">
-                    <button id="undo-button" class="bg-transparent border-none mr-2" @click="undoLastAction()">
-                        <i class="fas fa-undo"></i>
-                    </button>
                     <div class="relative flex-grow">
-                        <input type="text" id="gpt-input" v-model="inputText" :placeholder="lastText || 'What would you like to create?'" class="input input-bordered w-full max-w-xs pr-10" @keypress.enter="sendInput()" />
+                        <input type="text" id="gpt-input" v-model="inputText" :placeholder="params.lastText || 'What would you like to create?'" class="input input-bordered w-full max-w-xs pr-10" @keypress.enter="sendInput()" />
                         <button id="stop-button" class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-transparent border-none" v-if="isLoading" @click="abortController?.abort()">
                             <i class="fas fa-stop"></i>
                         </button>
-                        <button id="send-button" class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-transparent border-none" v-else-if="inputText" @click="sendInput()">
-                            <i class="fas fa-paper-plane"></i>
+                        <button id="send-button" class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-transparent border-none" v-else-if="inputText" @click="isMobile? inputText = '' : sendInput()" style="background-color: rgba(255, 255, 255, 0);">
+                            <span class="hidden md:inline"><i class="fas fa-paper-plane"></i></span>
+                            <span class="md:hidden"><i class="fas fa-eraser"></i></span>
                         </button>
-                        <button id="resend-button" class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-transparent border-none" v-else-if="lastText" @click="sendInput()">
+                        <button id="resend-button" class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-transparent border-none" v-else-if="params.lastText" @click="sendInput()">
                             <i class="fas fa-redo-alt"></i>
                         </button>
                     </div>
+                    <button v-if="lastError" class="bg-transparent border-none ml-2" @click="inputText = lastError" :title="lastError">
+                        <i class="fas fa-exclamation-circle" style="color: red;"></i>
+                    </button>
+
                 </div>
             </div>
             <div id="suggestion-bubbles" class="mt-2">
@@ -90,6 +92,7 @@
     </div>
     <script src="build/sketchbook.min.js"></script>
     <script src="src/utils.js"></script>
+    <script src="src/dragndrop.js"></script>
     <script src="src/stable3d.js"></script>
     <script src="src/settings.js"></script>
     <script src="src/gptapi.js"></script>

@@ -1,49 +1,56 @@
-<script src="https://unpkg.com/acorn/dist/acorn.js"></script>
-<script src="https://unpkg.com/acorn-walk/dist/walk.js"></script>
-<script src="test2.js">
-    function takeSnapshot(code, context) {
-        const ast = acorn.parse(code, { ecmaVersion: 2020 });
-        const modifiedVariables = [];
+<html>
 
-        acorn.walk.simple(ast, {
-            CallExpression(node) {
-                if (node.callee.type === 'MemberExpression') {
-                    modifiedVariables.push(node.callee.object.name);
-                }
-            },
-            AssignmentExpression(node) {
-                if (node.left.type === 'Identifier') {
-                    modifiedVariables.push(node.left.name);
-                }
-            },
-        });
+<body>
+    <div id="app">  </div>
+    <script src="https://unpkg.com/acorn/dist/acorn.js"></script>
+    <script src="https://unpkg.com/acorn-walk/dist/walk.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+    <script src="test.js">
+        function takeSnapshot(code, context) {
+            const ast = acorn.parse(code, { ecmaVersion: 2020 });
+            const modifiedVariables = [];
 
-        const snapshot = {};
-        modifiedVariables.forEach(variable => {
-            snapshot[variable] = Array.isArray(context[variable])
-                ? [...context[variable]]
-                : context[variable];
-        });
+            acorn.walk.simple(ast, {
+                CallExpression(node) {
+                    if (node.callee.type === 'MemberExpression') {
+                        modifiedVariables.push(node.callee.object.name);
+                    }
+                },
+                AssignmentExpression(node) {
+                    if (node.left.type === 'Identifier') {
+                        modifiedVariables.push(node.left.name);
+                    }
+                },
+            });
 
-        return snapshot;
-    }
+            const snapshot = {};
+            modifiedVariables.forEach(variable => {
+                snapshot[variable] = Array.isArray(context[variable])
+                    ? [...context[variable]]
+                    : context[variable];
+            });
 
-    function undo(snapshot, context) {
-        Object.entries(snapshot).forEach(([variable, value]) => {
-            context[variable] = value;
-        });
-    }
+            return snapshot;
+        }
 
-    // Example usage
-    var test = [];
-    var test2 = 1;
-    let code = "test.push(1);test2=test2+1;";
-    const s = takeSnapshot(code, window);
-    eval(code);
-    console.log(test); // Output: [1]
-    console.log(test2); // Output: 2
+        function undo(snapshot, context) {
+            Object.entries(snapshot).forEach(([variable, value]) => {
+                context[variable] = value;
+            });
+        }
 
-    undo(s, window);
-    console.log(test); // Output: []
-    console.log(test2); // Output: 1
-</script>
+        // Example usage
+        var test = [];
+        var test2 = 1;
+        let code = "test.push(1);test2=test2+1;";
+        const s = takeSnapshot(code, window);
+        eval(code);
+        console.log(test); // Output: [1]
+        console.log(test2); // Output: 2
+
+        undo(s, window);
+        console.log(test); // Output: []
+        console.log(test2); // Output: 1
+    </script>
+</body>

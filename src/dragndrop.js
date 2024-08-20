@@ -1,12 +1,3 @@
-const input = document.createElement('input');
-input.type = 'text';
-document.body.appendChild(input);
-
-const downloadButton = document.createElement('button');
-downloadButton.textContent = 'Generate 3D Model';
-document.body.appendChild(downloadButton);
-
-
 document.body.addEventListener('dragover', (e) => {
     e.preventDefault();
     document.body.style.background = '#e1e1e1';
@@ -24,16 +15,31 @@ document.body.addEventListener('drop', (e) => {
         const reader = new FileReader();
         reader.onload = (event) => loadModel(event.target.result);
         reader.readAsDataURL(file);
+    } else if (file && file.name.endsWith('.js')) {
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            try {
+                
+                await EvalWithDebug(chat.params.code,event.target.result);
+            } catch (error) {
+                chat.lastError = error.message;
+            }
+        };
+        reader.readAsText(file);
+    } else if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (event) => applyImageTexture(event.target.result);
+        reader.readAsDataURL(file);
     } else {
-        alert('Please drop a valid GLB file.');
+        alert('Please drop a valid GLB, JS, or image file.');
     }
 });
 const mouse = new THREE.Vector2();
         
-        // Update mouse position
-        window.addEventListener('mousemove', (event) => {
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+// Update mouse position
+window.addEventListener('mousemove', (event) => {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 });
 
 const loadModel = (glbUrl) => {
@@ -84,6 +90,58 @@ const loadModel = (glbUrl) => {
     });
 };
 
+const applyImageTexture = (imageUrl) => {
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, world.camera);
+    const intersects = raycaster.intersectObjects(world.graphicsWorld.children, true);
+    
+    if (intersects.length > 0) {
+        const intersectedObject = intersects[0].object;
+        
+        // Load the image as a texture
+        const textureLoader = new THREE.TextureLoader();
+        textureLoader.load(imageUrl, (texture) => {
+            // Make the texture repeat
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(2, 2); // Adjust repeat values as needed
+
+            // Function to apply material to an object or its children
+            const applyMaterialToObject = (object) => {
+                if (object.isMesh) {
+                    // Create a new material with the loaded texture
+                    const newMaterial = new THREE.MeshStandardMaterial({
+                        map: texture,
+                        skinning: object.material.skinning // Preserve skinning if it exists
+                    });
+                    
+                    // Copy other relevant properties from the original material
+                    newMaterial.color.copy(object.material.color);
+                    newMaterial.roughness = object.material.roughness;
+                    newMaterial.metalness = object.material.metalness;
+
+                    // Apply the new material
+                    object.material = newMaterial;
+                }
+            };
+
+            // Apply material to the intersected object and its children
+            intersectedObject.traverse(applyMaterialToObject);
+        });
+    } else {
+        console.log("No object intersected for texture application");
+    }
+};
+
+/*
+const input = document.createElement('input');
+input.type = 'text';
+document.body.appendChild(input);
+
+const downloadButton = document.createElement('button');
+downloadButton.textContent = 'Generate 3D Model';
+document.body.appendChild(downloadButton);
+
 downloadButton.addEventListener('click', async () => {
     const v = input.value || 'trump';
     input.value = '';
@@ -91,3 +149,4 @@ downloadButton.addEventListener('click', async () => {
     if (glbUrl) loadModel(glbUrl);
     else console.error('Failed to generate GLB URL');
 });
+*/

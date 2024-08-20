@@ -18,7 +18,7 @@ function cloneDepth3(obj, depth = 3, clonedMap = new Map()) {
 
     return clonedObj;
 }
-function mergeSnapshot(target, source, depth = 3) {
+function mergeSnapshot(target, source, depth = 3) {//try use lodash
     if (depth === 0 || target === null || typeof target !== 'object' || source === null || typeof source !== 'object') {
         return target;
     }

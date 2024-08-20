@@ -484,7 +484,7 @@ export class World
 		document.body.appendChild(this.renderer.domElement);
 		this.renderer.domElement.id = 'canvas';
 	}
-
+	public gui : GUI;
 	private createParamsGUI(scope: World): void
 	{
 		this.params = {
@@ -499,7 +499,7 @@ export class World
 			Sun_Rotation: 145,
 		};
 
-		const gui = new GUI.GUI();
+		const gui = this.gui = new GUI.GUI();
 
 		// Scenario
 		this.scenarioGUIFolder = gui.addFolder('Scenarios');

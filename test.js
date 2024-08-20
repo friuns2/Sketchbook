@@ -1,3 +1,28 @@
+
+
+    let testObj = {
+        params: {
+            a: 'initial value',
+            aChanged(){
+                console.log('aChanged');
+            }
+        },
+        someMethod() {
+            return this.params.a;
+        },
+        mounted() {
+            console.log('Vue instance mounted with params:', this.params.a);
+        }
+    };
+
+    var vue = InitVue(testObj, {
+        mounted: testObj.mounted
+    });
+
+    vue = new Vue({
+        el: '#app',
+        ...vue
+    });
 function InitVue(obj, args = {}) {
     var updatedFromHash;
     let defaultParams = _.cloneDeep(obj.params);
@@ -48,6 +73,7 @@ function InitVue(obj, args = {}) {
                     const hashParams = new URLSearchParams(window.location.hash.slice(1));
                     hashParams.set(key, JSON.stringify(newValue));
                     window.location.hash = hashParams.toString();
+                    console.log(key,newValue,updatedFromHash)
                     if (updatedFromHash)
                         obj.params[key + "Changed"]?.call(obj);
                 };
@@ -56,62 +82,4 @@ function InitVue(obj, args = {}) {
             
         }, args.watch || {})
     };
-}
-
-
-async function parseFilesFromMessage(message) {
-    let files = [];
-    let regexHtml = /(?:^|\n)(?:(?:[#*][^\r\n]*?([\w.\-_]+)[^\r\n]*?\n)?\n?```(\w+)\n?(.*?)(?:\n```|$(?!\n)))|(?:<html.*?>.*?(?:<\/html>|$(?!\n)))/gs;
-    let match;
-    let messageWithoutCodeBlocks = message;
-    let correctFormat=false;
-    while ((match = regexHtml.exec(message)) !== null) {
-        let fileName;
-        let content = '';
-        if (match[0].startsWith('<html') && !correctFormat) {
-            fileName = "index.html";
-            content = match[0];
-        }
-        else if (match[1]) {
-            fileName = match[1].trim();
-            content = match[3];
-            if(!correctFormat)
-                files = [];
-            correctFormat=true;
-        }
-        else if(!correctFormat) {
-            fileName = match[2] === 'css' ? "styles.css" :
-                match[2] === 'javascript' ? "script.js" :
-                    match[2] === 'python' ? "script.py" : "index.html";
-            content = match[3];
-        }
-        else 
-            continue;
-        messageWithoutCodeBlocks = messageWithoutCodeBlocks.replace(match[0],'\n');// "# "+fileName
-        if (files.find(a => a.name == fileName)?.content.length > content.length)
-            continue;
-
-        files.push({ name: fileName, content,langauge:match[2]||"html" ,hidden:false});
-
-
-
-    }
-
-    return { messageWithoutCodeBlocks, files };
-}
-
-function Save() {
-    globalThis.snapshot = {
-        graphicsWorld: world.graphicsWorld.children.slice(),
-        physicsWorld: world.physicsWorld.bodies.slice(),
-        updatables:world.updatables.slice()
-    };
-}
-function Load() {
-    world.graphicsWorld.children.length = 0;
-    world.graphicsWorld.children.push(...globalThis.snapshot.graphicsWorld);
-    world.physicsWorld.bodies.length = 0;
-    world.physicsWorld.bodies.push(...globalThis.snapshot.physicsWorld);
-    world.updatables.length = 0;
-    world.updatables.push(...globalThis.snapshot.updatables);
 }

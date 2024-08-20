@@ -455,6 +455,14 @@ export class Character extends THREE.Object3D implements IWorldEntity
 	{
 		this.world.updateControls([
 			{
+				keys: ['Alt','+', '←'],
+				desc: 'Undo'
+			},
+			{
+				keys: ['Alt', '+', '→'],
+				desc: 'Redo'
+			},
+			{
 				keys: ['W', 'A', 'S', 'D'],
 				desc: 'Movement'
 			},
