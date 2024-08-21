@@ -157,3 +157,20 @@ function loadModelWithPhysics({ glbUrl, pos, mass = 1 }) {
         });
     });
 }
+
+if (!navigator.serviceWorker && !window.location.hostname.startsWith('192')) {
+    alert("Error: Service worker is not supported");
+  } else {
+    (async () => {
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration) {
+          await registration.unregister();
+        }
+        await navigator.serviceWorker.register('service-worker.mjs');
+      } catch (error) {
+        console.error("Service worker registration failed:", error);
+      }
+    })();
+  }
+  

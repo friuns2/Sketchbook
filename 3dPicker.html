@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sketchfab Model Picker</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.1.0/dist/full.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div id="picker" class="container mx-auto p-4">
+        <h1 class="text-3xl font-bold text-center mb-6">Sketchfab Model Picker</h1>
+        <button @click="openModelPicker" class="btn btn-primary">Open Model Picker</button>
+
+        <dialog id="model-picker-modal" class="modal" ref="modelPickerModal">
+            <form method="dialog" class="modal-box w-11/12 max-w-5xl h-full">
+                <h3 class="font-bold text-lg mb-4">Sketchfab Model Picker</h3>
+                <div class="flex mb-4">
+                    <input v-model="searchQuery" @keyup.enter="performSearch" type="text" placeholder="Search models..." class="input input-bordered flex-grow" />
+                    <button @click="performSearch" class="btn btn-primary ml-2"><i class="fas fa-search"></i> Search</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 overflow-y-auto" style="max-height: calc(100vh - 200px);">
+                    <div v-for="model in models" :key="model.uid" class="card bg-base-100 shadow-xl">
+                        <figure><img :src="model.thumbnails.images[0].url" :alt="model.name" class="w-full h-48 object-cover" /></figure>
+                        <div class="card-body">
+                            <h2 class="card-title">{{ model.name }}</h2>
+                            <div class="card-actions justify-end">
+                                <button @click="downloadModel(model.uid)" class="btn btn-primary">
+                                    <i class="fas fa-download mr-2"></i> Download
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-action">
+                    <button class="btn">Close</button>
+                </div>
+            </form>
+        </dialog>
+
+        <dialog id="download-modal" class="modal" ref="downloadModal">
+            <form method="dialog" class="modal-box">
+                <h3 class="font-bold text-lg">Downloading Model</h3>
+                <p class="py-4">Please wait while we prepare your download...</p>
+                <div class="modal-action">
+                    <button class="btn">Close</button>
+                </div>
+            </form>
+        </dialog>
+    </div>
+
+    <script>
+    let vu= new Vue({
+        el: '#picker',
+        data: {
+            searchQuery: '',
+            models: [],
+            SKETCHFAB_API_URL: 'https://api.sketchfab.com/v3/search',
+            SKETCHFAB_MODEL_URL: 'https://sketchfab.com/models/',
+            SKETCHFAB_DOWNLOAD_URL: 'https://api.sketchfab.com/v3/models/',
+            TOKEN: '6eb96d1e07b641e2b512b7cde8ee6c4d'
+        },
+        methods: {
+            openModelPicker() {
+                this.searchQuery = "tree";
+                this.$refs.modelPickerModal.showModal();
+                this.performSearch();
+            },
+            async performSearch() {
+                if (!this.searchQuery.trim()) return;
+
+                try {
+                    const response = await fetch(`${this.SKETCHFAB_API_URL}?type=models&q=${this.searchQuery}&downloadable=true`, {
+                        headers: { 'Authorization': `Token ${this.TOKEN}` }
+                    });
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    const data = await response.json();
+                    this.models = data.results;
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                    this.models = [];
+                }
+            },
+            async downloadModel(modelUid) {
+                this.$refs.downloadModal.showModal();
+                try {
+                    const response = await fetch(`${this.SKETCHFAB_DOWNLOAD_URL}${modelUid}/download`, {
+                        headers: { 'Authorization': `Token ${this.TOKEN}` }
+                    });
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    const data = await response.json();
+                    const downloadUrl = data.glb?.url || data.gltf?.url;
+                    window.open(downloadUrl, '_blank');
+                } catch (error) {
+                    console.error('Error downloading model:', error);
+                    alert('An error occurred while trying to download the model. Please try again.');
+                } finally {
+                    this.$refs.downloadModal.close();
+                }
+            }
+        }
+    });
+    </script>
+</body>
+</html>

@@ -42,7 +42,7 @@ let chat = {
         
     },
     onClickError(){
-        this.inputText = this.params.lastText + '\nPrevious atempt Error: ' + this.lastError;
+        this.inputText = this.params.lastText + ' \nPrevious atempt Error: ' + this.lastError+", do not make it again!";
     },
     async undoLastAction() {
 
@@ -100,7 +100,7 @@ let chat = {
             }
             console.log(floatingCode.textContent);
             let files = await parseFilesFromMessage(floatingCode.textContent);
-            let content = files.files[0].content;
+            var content = files.files[0].content;
             if (this.messages[this.messages.length - 1]?.user != this.params.lastText) {
                 this.messages.push({ user: this.params.lastText });
             }
@@ -110,7 +110,7 @@ let chat = {
             let lineNumber = e.lineNumber - err.lineNumber + 3;
             console.error("Error executing code:", e, lineNumber);
             Eval(this.params.code);
-            this.lastError = e.message;
+            this.lastError = `${e.message}`;//`"Error:"+${e.message}\n\`\`\`javascript\n${content}\n\`\`\`\n`;
 
 
         } finally {
@@ -166,7 +166,7 @@ async function Eval(...contentArray) {
     if(content.includes("world.update = "))
         throw new Error("direct assign world.update = function(){} is not allowed, use extendMethod");
     var code = "(async () => {\n" + content
-        .replace(/^[\s\S]*?await world\.initialize\(\);/, '')
+        .replace(/^[\s\S]*?(await world\.initialize|player\.takeControl)\(\);/, '')
         .replace(/\b(let|const)\s+(\w+)\s*=/g, 'var $2 = globalThis.$2 =')        
         + "\n})();"
         //+ ";debugger;"
@@ -179,23 +179,32 @@ async function Eval(...contentArray) {
     }
 }
 
+async function inject3DPicker() {
+    try {
+        const response = await fetch('3dPicker.html');
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const html = await response.text();
+        
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        document.body.appendChild(div);
 
-if (!navigator.serviceWorker && !window.location.hostname.startsWith('192')) {
-    alert("Error: Service worker is not supported");
-  } else {
-    (async () => {
-      try {
-        const registration = await navigator.serviceWorker.getRegistration();
-        if (registration) {
-          await registration.unregister();
-        }
-        await navigator.serviceWorker.register('service-worker.mjs');
-      } catch (error) {
-        console.error("Service worker registration failed:", error);
-      }
-    })();
-  }
-  
+        const scripts = div.getElementsByTagName('script');
+        Array.from(scripts).forEach(script => {
+            const newScript = document.createElement('script');
+            newScript.textContent = script.textContent;
+            document.body.appendChild(newScript);
+        });
+
+        console.log('3D Picker injected successfully');
+    } catch (error) {
+        console.error('Error injecting 3D Picker:', error);
+    }
+}
+
+inject3DPicker();
+
+
 
 // Assuming you have a dat.GUI instance called 'gui'
 world.gui.add({ clear: function() { 

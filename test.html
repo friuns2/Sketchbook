@@ -1,24 +1,124 @@
-<body>
-    <button id="myButton">Click me</button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sketchfab Model Picker</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.1.0/dist/full.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <h1 class="text-3xl font-bold text-center mb-6">Sketchfab Model Picker</h1>
+        <button id="open-modal-button" class="btn btn-primary">Open Model Picker</button>
+    </div>
+
+    <dialog id="model-picker-modal" class="modal">
+        <form method="dialog" class="modal-box w-11/12 max-w-5xl h-full">
+            <h3 class="font-bold text-lg mb-4">Sketchfab Model Picker</h3>
+            <div class="flex mb-4">
+                <input type="text" id="search-input" placeholder="Search models..." class="input input-bordered flex-grow" />
+                <button id="search-button" class="btn btn-primary ml-2"><i class="fas fa-search"></i> Search</button>
+            </div>
+            <div id="results" class="grid grid-cols-1 md:grid-cols-3 gap-4 overflow-y-auto" style="max-height: calc(100vh - 200px);"></div>
+            <div class="modal-action">
+                <button class="btn">Close</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="download-modal" class="modal">
+        <form method="dialog" class="modal-box">
+            <h3 class="font-bold text-lg">Downloading Model</h3>
+            <p class="py-4">Please wait while we prepare your download...</p>
+            <div class="modal-action">
+                <button class="btn">Close</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+    <script>
+    const openModalButton = document.getElementById('open-modal-button');
+    const modelPickerModal = document.getElementById('model-picker-modal');
+    const searchInput = document.getElementById('search-input');
+    const searchButton = document.getElementById('search-button');
+    const resultsContainer = document.getElementById('results');
+    const downloadModal = document.getElementById('download-modal');
+
+    const SKETCHFAB_API_URL = 'https://api.sketchfab.com/v3/search';
+    const SKETCHFAB_MODEL_URL = 'https://sketchfab.com/models/';
+    const SKETCHFAB_DOWNLOAD_URL = 'https://api.sketchfab.com/v3/models/';
+    const TOKEN = '6eb96d1e07b641e2b512b7cde8ee6c4d';
+
+    openModalButton.addEventListener('click', () => {
+        openModelPicker("tree");
+    });
+
+    function openModelPicker(initialSearch) {
+        modelPickerModal.showModal();
+        searchInput.value = initialSearch;
+        performSearch();
+    }
+
+    searchButton.addEventListener('click', performSearch);
+    searchInput.addEventListener('keypress', e => e.key === 'Enter' && performSearch());
+
+    async function performSearch() {
+        const query = searchInput.value.trim();
+        if (!query) return;
+
+        resultsContainer.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+
+        try {
+            const response = await axios.get(SKETCHFAB_API_URL, {
+                params: { type: 'models', q: query, downloadable: true },
+                headers: { 'Authorization': `Token ${TOKEN}` }
+            });
+            displayResults(response.data.results);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            resultsContainer.innerHTML = '<p class="text-red-500">An error occurred. Please try again.</p>';
+        }
+    }
+
+    function displayResults(models) {
+        resultsContainer.innerHTML = models.length ? models.map(model => `
+            <div class="card bg-base-100 shadow-xl">
+                <figure><img src="${model.thumbnails.images[0].url}" alt="${model.name}" class="w-full h-48 object-cover" /></figure>
+                <div class="card-body">
+                    <h2 class="card-title">${model.name}</h2>
+                    <div class="card-actions justify-end">
+                        <button class="btn btn-primary" onclick="downloadModel('${model.uid}')">
+                            <i class="fas fa-download mr-2"></i> Download
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('') : '<p class="text-center">No downloadable models found. Try a different search term.</p>';
+    }
+
+    async function downloadModel(modelUid) {
+        downloadModal.showModal();
+        try {
+            const response = await fetch(`${SKETCHFAB_DOWNLOAD_URL}${modelUid}/download`, {
+                headers: { 'Authorization': `Token ${TOKEN}` }
+            });
+            if (!response.ok) throw new Error('Network response was not ok');
+            const data = await response.json();
+            const downloadUrl = data.glb?.url || data.gltf?.url;
+            window.open(downloadUrl, '_blank');
+        } catch (error) {
+            console.error('Error downloading model:', error);
+            alert('An error occurred while trying to download the model. Please try again.');
+        } finally {
+            downloadModal.close();
+        }
+    }
+
+    // Example of opening modal with initial search
+    // openModelPicker("tree");
+    </script>
 </body>
-<script>
-    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-    const handleClick = async () => {
-        for (let i = 0; i < 5; i++) 
-        {
-            await delay(i * 100);
-            const location = `location${i + 1}`;
-            // Set the document location to the generated URL
-            document.location.hash = location;
-        }
-        for (let i = 0; i < 5; i++) 
-        { await delay(i * 100);
-            window.history.back();
-            console.log(window.location.hash);
-        }
-    };
-
-    // Assuming there's a button with the ID 'myButton'
-    document.getElementById('myButton').addEventListener('click', handleClick);
-</script>
+</html>
