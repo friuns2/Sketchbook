@@ -61,7 +61,7 @@
                 <div id="controls" class="panel-segment flex-bottom"></div>
             </div>
         </div>
-        <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center" v-show="!isCursorLocked">
+        <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center" :style="{ opacity: isCursorLocked ? 1 : 1 }">
             <div class="w-full max-w-xs relative" >
                 <pre id="floating-code" class="floating-code" style="pointer-events: none;" ></pre>
                 <div class="progress-circle w-6 h-6 mr-2" :class="{ hidden: !isLoading }"></div>
@@ -92,6 +92,7 @@
     </div>
     <script src="build/sketchbook.min.js"></script>
     <script src="src/helpers.js"></script>
+    <script src="src/errorHandling.js"></script>
     <script src="src/utils.js"></script>
     <script src="src/dragndrop.js"></script>
     <script src="src/settings.js"></script>

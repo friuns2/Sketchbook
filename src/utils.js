@@ -105,7 +105,8 @@ function Save() {
     globalThis.snapshot = {
         graphicsWorld: world.graphicsWorld.children.slice(),
         physicsWorld: world.physicsWorld.bodies.slice(),
-        updatables:world.updatables.slice()
+        updatables:world.updatables.slice(),
+        characters:world.characters.slice()
     };
 }
 function Load() {
@@ -115,6 +116,8 @@ function Load() {
     world.physicsWorld.bodies.push(...globalThis.snapshot.physicsWorld);
     world.updatables.length = 0;
     world.updatables.push(...globalThis.snapshot.updatables);
+    world.characters.length = 0;
+    world.characters.push(...globalThis.snapshot.characters);
 }
 
 function loadModelWithPhysics({ glbUrl, pos, mass = 1 }) {
@@ -174,3 +177,82 @@ if (!navigator.serviceWorker && !window.location.hostname.startsWith('192')) {
     })();
   }
   
+  (function() {
+    // Store the original XMLHttpRequest constructor
+    const OriginalXMLHttpRequest = XMLHttpRequest;
+  
+    // Create a new constructor that wraps the original XMLHttpRequest
+    XMLHttpRequest = function() {
+      const xhr = new OriginalXMLHttpRequest();
+      let requestURL = '';
+  
+      // Override the open method to capture the URL
+      const originalOpen = xhr.open;
+      xhr.open = function(method, url, async, user, password) {
+        requestURL = url; // Store the URL
+        originalOpen.apply(xhr, arguments); // Call the original open method
+      };
+  
+      // Override the getter for responseURL
+      Object.defineProperty(xhr, 'responseURL', {
+        get: function() {
+          return requestURL || ''; // Return the tracked URL or an empty string
+        },
+        configurable: true
+      });
+  
+      // Return the wrapped xhr object
+      return xhr;
+    };
+  
+    // Copy static properties and methods from the original XMLHttpRequest to the new one
+    for (let key in OriginalXMLHttpRequest) {
+      if (OriginalXMLHttpRequest.hasOwnProperty(key)) {
+        XMLHttpRequest[key] = OriginalXMLHttpRequest[key];
+      }
+    }
+  
+  })();
+  
+  async function LoadComponent(file) {
+    try {
+        const response = await fetch(file);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const html = await response.text();
+        
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        // Remove the head content
+        doc.head.innerHTML = '';
+        
+        const div = document.createElement('div');
+        div.innerHTML = doc.body.innerHTML;
+        document.body.appendChild(div);
+
+        const scripts = div.getElementsByTagName('script');
+        Array.from(scripts).forEach(script => {
+            const newScript = document.createElement('script');
+            if (script.src) {
+                newScript.src = script.src;
+            } else {
+                newScript.textContent = script.textContent;
+            }
+            document.body.appendChild(newScript);
+        });
+
+        console.log('3D Picker injected successfully');
+       
+    } catch (error) {
+        console.error('Error injecting 3D Picker:', error);
+    }
+}
+function GetPlayerFront() {
+    let playerLookPoint = new THREE.Vector3();
+    player.getWorldPosition(playerLookPoint);
+    let direction = new THREE.Vector3(0, 0, -1);
+    direction.applyQuaternion(world.camera.quaternion);
+    playerLookPoint.add(direction.multiplyScalar(2));    
+    return playerLookPoint;
+}
+

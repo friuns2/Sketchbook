@@ -6,7 +6,7 @@ import { FollowTarget } from './characters/character_ai/FollowTarget';
 import { FollowPath } from './characters/character_ai/FollowPath';
 import { RandomBehaviour } from './characters/character_ai/RandomBehaviour';
 
-const CharacterAI = {
+globalThis.CharacterAI ={
     FollowTarget,
     FollowPath,
     RandomBehaviour,
@@ -54,4 +54,3 @@ globalThis.EntityType = EntityType;
 
 import { VectorSpringSimulator } from './physics/spring_simulation/VectorSpringSimulator';
 globalThis.VectorSpringSimulator = VectorSpringSimulator;
-

@@ -58,9 +58,9 @@ export class World
 	public console: InfoStack;
 	public cannonDebugRenderer: CannonDebugRenderer;
 	public scenarios: Scenario[] = [];
-	public characters: Character[] = [];
-	public vehicles: Vehicle[] = [];
-	public paths: Path[] = [];
+	public readonly characters: Character[] = [];
+	public readonly vehicles: Vehicle[] = [];
+	public readonly paths: Path[] = [];
 	public scenarioGUIFolder: any;
 	public updatables: IUpdatable[] = [];
 	public loadingManager: LoadingManager; 

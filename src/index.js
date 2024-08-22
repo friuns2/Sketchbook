@@ -12,7 +12,7 @@ let chat = {
         code: '',
         codeChanged: function(){
             console.log('codeChanged');
-            EvalWithDebug(chat.params.code);
+            Eval(chat.params.code);
         },
         lastText: ''        
     },
@@ -55,12 +55,7 @@ let chat = {
     },
     async sendInput() {
 
-        let playerLookPoint = new THREE.Vector3();
-        player.getWorldPosition(playerLookPoint);
-        let direction = new THREE.Vector3(0, 0, -1);
-        direction.applyQuaternion(world.camera.quaternion);
-        playerLookPoint.add(direction.multiplyScalar(2));
-        playerLookPoint = JSON.stringify(playerLookPoint, (key, value) => typeof value === 'number' ? Number(value.toFixed(2)) : value);
+        let playerLookPoint = GetPlayerFront();
         const floatingCode = document.getElementById('floating-code');
         this.params.lastText = this.inputText || this.params.lastText;
         this.inputText = '';
@@ -70,12 +65,18 @@ let chat = {
         try {
             const fileNames = [
                 'build/types/world/World.d.ts',
-//                'build/types/characters/Character.d.ts',
-                'src/helpers.js'
+                'build/types/characters/Character.d.ts',
+                'build/types/interfaces/ICharacterAI.d.ts',
+                'build/types/interfaces/ICollider.d.ts',
+                'src/ts/characters/character_ai/FollowTarget.ts',
+                'src/helpers.js',                
             ];
             
             const fetchPromises = fileNames.map(path => 
-                fetch(path).then(response => response.text())
+                fetch(path).then(response => response.text()).catch(e => {
+                    console.error("Error fetching file:", e);
+                    return '';
+                })
                     .then(content => ({ name: path.split('/').pop(), content }))
             );
             
@@ -106,12 +107,9 @@ let chat = {
             }
             await EvalWithDebug(content);
         } catch (e) {
-            var err = e.constructor('Error in Evaled Script: ' + e.message);
-            let lineNumber = e.lineNumber - err.lineNumber + 3;
-            console.error("Error executing code:", e, lineNumber);
-            Eval(this.params.code);
-            this.lastError = `${e.message}`;//`"Error:"+${e.message}\n\`\`\`javascript\n${content}\n\`\`\`\n`;
-
+            if(e.name == 'AbortError')
+                return;
+           
 
         } finally {
             this.abortController = null;
@@ -130,84 +128,18 @@ let vue = chat = new Vue({
     watch,
     mounted
 });
-var originalConsoleError = console.error;
-console.error = (...args) => {
-    chat.lastError = args.join(' ');
-    originalConsoleError(...args);
-};
-window.addEventListener('unhandledrejection', function(event) {
-    console.error('Caught unhandled promise rejection:', event.reason);
-    if (event.reason instanceof Error) {
-        chat.lastError = `${event.reason.name}: ${event.reason.message}`;
-    } else {
-        chat.lastError = String(event.reason);
-    }
-    event.preventDefault();
-});
-window.addEventListener('error', function (event) {
-    chat.lastError = event.error.message;
-    console.error(chat.lastError);
-});
 
 
 
-async function EvalWithDebug(...content) {
-    await Eval(...content);    
-    if (chat.lastError)
-        throw new Error(chat.lastError);
-}
-
-async function Eval(...contentArray) {
-    chat.lastError = '';
-    Load();
-    
-    
-    var content = contentArray.join('\n');
-    if(content.includes("world.update = "))
-        throw new Error("direct assign world.update = function(){} is not allowed, use extendMethod");
-    var code = "(async () => {\n" + content
-        .replace(/^[\s\S]*?(await world\.initialize|player\.takeControl)\(\);/, '')
-        .replace(/\b(let|const)\s+(\w+)\s*=/g, 'var $2 = globalThis.$2 =')        
-        + "\n})();"
-        //+ ";debugger;"
-    console.log(code);
-    (0, eval)(code);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    if (!chat.lastError){
-        console.log("Execution success");
-        chat.params.code = content;
-    }
-}
-
-async function inject3DPicker() {
-    try {
-        const response = await fetch('3dPicker.html');
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const html = await response.text();
-        
-        const div = document.createElement('div');
-        div.innerHTML = html;
-        document.body.appendChild(div);
-
-        const scripts = div.getElementsByTagName('script');
-        Array.from(scripts).forEach(script => {
-            const newScript = document.createElement('script');
-            newScript.textContent = script.textContent;
-            document.body.appendChild(newScript);
-        });
-
-        console.log('3D Picker injected successfully');
-    } catch (error) {
-        console.error('Error injecting 3D Picker:', error);
-    }
-}
-
-inject3DPicker();
 
 
+LoadComponent('3dPicker.html');
 
+
+/*
 // Assuming you have a dat.GUI instance called 'gui'
 world.gui.add({ clear: function() { 
     // Call your Clear function here
     chat.Clear(); 
 }}, 'clear').name('Clear Canvas');
+*/

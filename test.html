@@ -1,124 +1,110 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sketchfab Model Picker</title>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.1.0/dist/full.css" rel="stylesheet" type="text/css" />
+
+<html><head><base href="https://websim.creativeengine.ai/FeatureDiscovery/"><title>Feature Discovery with DaisyUI</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.1.6/dist/full.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body class="bg-gray-100">
-    <div class="container mx-auto p-4">
-        <h1 class="text-3xl font-bold text-center mb-6">Sketchfab Model Picker</h1>
-        <button id="open-modal-button" class="btn btn-primary">Open Model Picker</button>
+    <style>
+      @keyframes pulse-highlight {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5); }
+        50% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); }
+      }
+      .feature-highlight {
+        animation: pulse-highlight 2s infinite;
+      }
+      .tutorial-bubble {
+        position: absolute;
+        background-color: #570DF8;
+        color: white;
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 14px;
+        max-width: 200px;
+      }
+      .tutorial-bubble::after {
+        content: "";
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        margin-left: -10px;
+        border-width: 10px 10px 0;
+        border-style: solid;
+        border-color: #570DF8 transparent transparent;
+      }
+    </style>
+    </head>
+    <body class="bg-base-200 min-h-screen flex flex-col items-center justify-center">
+    
+    <div class="navbar bg-base-100 shadow-lg rounded-box w-full max-w-4xl mb-8">
+      <div class="flex-1">
+        <a class="btn btn-ghost normal-case text-xl">FeatureDiscovery</a>
+      </div>
+      <div class="flex-none">
+        <button class="btn btn-square btn-ghost" id="searchBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-5 h-5 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </button>
+        <button class="btn btn-square btn-ghost" id="notificationBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-5 h-5 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+        </button>
+        <button class="btn btn-square btn-ghost" id="profileBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-5 h-5 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+        </button>
+      </div>
     </div>
-
-    <dialog id="model-picker-modal" class="modal">
-        <form method="dialog" class="modal-box w-11/12 max-w-5xl h-full">
-            <h3 class="font-bold text-lg mb-4">Sketchfab Model Picker</h3>
-            <div class="flex mb-4">
-                <input type="text" id="search-input" placeholder="Search models..." class="input input-bordered flex-grow" />
-                <button id="search-button" class="btn btn-primary ml-2"><i class="fas fa-search"></i> Search</button>
-            </div>
-            <div id="results" class="grid grid-cols-1 md:grid-cols-3 gap-4 overflow-y-auto" style="max-height: calc(100vh - 200px);"></div>
-            <div class="modal-action">
-                <button class="btn">Close</button>
-            </div>
-        </form>
-    </dialog>
-
-    <dialog id="download-modal" class="modal">
-        <form method="dialog" class="modal-box">
-            <h3 class="font-bold text-lg">Downloading Model</h3>
-            <p class="py-4">Please wait while we prepare your download...</p>
-            <div class="modal-action">
-                <button class="btn">Close</button>
-            </div>
-        </form>
-    </dialog>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+    
+    <div class="card w-96 bg-base-100 shadow-xl">
+      <figure><img src="https://picsum.photos/400/200" alt="Shoes" /></figure>
+      <div class="card-body">
+        <h2 class="card-title">New feature!</h2>
+        <p>Click the buttons above to discover new features!</p>
+        <div class="card-actions justify-end">
+          <button class="btn btn-primary" id="startTour">Start Tour</button>
+        </div>
+      </div>
+    </div>
+    
+    <div id="tutorialBubble" class="tutorial-bubble" style="display: none;"></div>
+    
     <script>
-    const openModalButton = document.getElementById('open-modal-button');
-    const modelPickerModal = document.getElementById('model-picker-modal');
-    const searchInput = document.getElementById('search-input');
-    const searchButton = document.getElementById('search-button');
-    const resultsContainer = document.getElementById('results');
-    const downloadModal = document.getElementById('download-modal');
-
-    const SKETCHFAB_API_URL = 'https://api.sketchfab.com/v3/search';
-    const SKETCHFAB_MODEL_URL = 'https://sketchfab.com/models/';
-    const SKETCHFAB_DOWNLOAD_URL = 'https://api.sketchfab.com/v3/models/';
-    const TOKEN = '6eb96d1e07b641e2b512b7cde8ee6c4d';
-
-    openModalButton.addEventListener('click', () => {
-        openModelPicker("tree");
+    const features = [
+      { id: 'searchBtn', content: 'Use this to search for anything on our platform.' },
+      { id: 'notificationBtn', content: 'Stay updated with the latest news and alerts.' },
+      { id: 'profileBtn', content: 'Access your personal profile and settings here.' }
+    ];
+    
+    let currentFeatureIndex = 0;
+    
+    function showFeature(index) {
+      const feature = features[index];
+      const element = document.getElementById(feature.id);
+      
+      document.querySelectorAll('.feature-highlight').forEach(el => el.classList.remove('feature-highlight'));
+      element.classList.add('feature-highlight');
+      
+      const tutorialBubble = document.getElementById('tutorialBubble');
+      tutorialBubble.textContent = feature.content;
+      
+      const elementRect = element.getBoundingClientRect();
+      
+      tutorialBubble.style.left = elementRect.left + (elementRect.width - tutorialBubble.offsetWidth) / 2 + 'px';
+      tutorialBubble.style.top = elementRect.top - tutorialBubble.offsetHeight - 10 + 'px';
+      tutorialBubble.style.display = 'block';
+    }
+    
+    document.getElementById('startTour').addEventListener('click', () => {
+      currentFeatureIndex = 0;
+      showFeature(currentFeatureIndex);
     });
-
-    function openModelPicker(initialSearch) {
-        modelPickerModal.showModal();
-        searchInput.value = initialSearch;
-        performSearch();
-    }
-
-    searchButton.addEventListener('click', performSearch);
-    searchInput.addEventListener('keypress', e => e.key === 'Enter' && performSearch());
-
-    async function performSearch() {
-        const query = searchInput.value.trim();
-        if (!query) return;
-
-        resultsContainer.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
-
-        try {
-            const response = await axios.get(SKETCHFAB_API_URL, {
-                params: { type: 'models', q: query, downloadable: true },
-                headers: { 'Authorization': `Token ${TOKEN}` }
-            });
-            displayResults(response.data.results);
-        } catch (error) {
-            console.error('Error fetching data:', error);
-            resultsContainer.innerHTML = '<p class="text-red-500">An error occurred. Please try again.</p>';
+    
+    document.addEventListener('click', (event) => {
+      if (!event.target.closest('.feature-highlight')) {
+        currentFeatureIndex = (currentFeatureIndex + 1) % features.length;
+        if (currentFeatureIndex === 0) {
+          document.getElementById('tutorialBubble').style.display = 'none';
+          document.querySelectorAll('.feature-highlight').forEach(el => el.classList.remove('feature-highlight'));
+        } else {
+          showFeature(currentFeatureIndex);
         }
-    }
-
-    function displayResults(models) {
-        resultsContainer.innerHTML = models.length ? models.map(model => `
-            <div class="card bg-base-100 shadow-xl">
-                <figure><img src="${model.thumbnails.images[0].url}" alt="${model.name}" class="w-full h-48 object-cover" /></figure>
-                <div class="card-body">
-                    <h2 class="card-title">${model.name}</h2>
-                    <div class="card-actions justify-end">
-                        <button class="btn btn-primary" onclick="downloadModel('${model.uid}')">
-                            <i class="fas fa-download mr-2"></i> Download
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `).join('') : '<p class="text-center">No downloadable models found. Try a different search term.</p>';
-    }
-
-    async function downloadModel(modelUid) {
-        downloadModal.showModal();
-        try {
-            const response = await fetch(`${SKETCHFAB_DOWNLOAD_URL}${modelUid}/download`, {
-                headers: { 'Authorization': `Token ${TOKEN}` }
-            });
-            if (!response.ok) throw new Error('Network response was not ok');
-            const data = await response.json();
-            const downloadUrl = data.glb?.url || data.gltf?.url;
-            window.open(downloadUrl, '_blank');
-        } catch (error) {
-            console.error('Error downloading model:', error);
-            alert('An error occurred while trying to download the model. Please try again.');
-        } finally {
-            downloadModal.close();
-        }
-    }
-
-    // Example of opening modal with initial search
-    // openModelPicker("tree");
+      }
+    });
     </script>
-</body>
-</html>
+    
+    </body></html>

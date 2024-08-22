@@ -38,7 +38,7 @@ export declare class World {
     console: InfoStack;
     cannonDebugRenderer: CannonDebugRenderer;
     scenarios: Scenario[];
-    characters: Character[];
+    readonly characters: Character[];
     vehicles: Vehicle[];
     paths: Path[];
     scenarioGUIFolder: any;

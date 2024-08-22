@@ -514,7 +514,7 @@ export class Character extends THREE.Object3D implements IWorldEntity
 			let action = this.mixer.clipAction(clip);
 			if (action === null)
 			{
-				console.error(`Animation ${clipName} not found!`);
+				console.warn(`Animation ${clipName} not found!`);
 				return 0;
 			}
 
