@@ -57,3 +57,9 @@ globalThis.EntityType = EntityType;
 import { VectorSpringSimulator } from './physics/spring_simulation/VectorSpringSimulator';
 globalThis.VectorSpringSimulator = VectorSpringSimulator;
 
+
+
+
+
+import { CAnims } from './enums/CharacterAnimations';
+globalThis.CAnims = CAnims;

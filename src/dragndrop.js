@@ -28,8 +28,9 @@
                 raycaster.setFromCamera(mouse, world.camera);
                 const intersects = raycaster.intersectObjects(world.graphicsWorld.children, true);
                 const intersectionPoint = intersects[0].point;
-                const code = await GetSpawnGLBCode(fileName,intersectionPoint );
-                Eval(chat.params.code, code);
+                var code = await GetSpawnGLBCode(fileName,intersectionPoint );
+                chat.variant.files[0].content += code;
+                Eval(chat.variant.files[0].content);
 
             };
             reader.readAsArrayBuffer(file);
@@ -96,12 +97,29 @@ async function GetSpawnGLBCode(fileName, intersectionPoint) {
     let animationsCode = '';
     const modelName = fileName.split('.').slice(0, -1).join('_').replace(/[^a-zA-Z0-9_]/g, '');
     if (animations && animations.length > 0) {
-        animationsCode += `${modelName}.mixer = new THREE.AnimationMixer(${modelName}.scene);\n`;
+        animationsCode += `gltf.mixer = new THREE.AnimationMixer(gltf.scene);\n`;
         animations.forEach((clip, index) => {
-            animationsCode += `${modelName}["${clip.name}"] = ${modelName}.mixer.clipAction(${modelName}.animations.find(a => a.name === "${clip.name}"));\n`;
+            animationsCode += `gltf["${clip.name}"] = gltf.mixer.clipAction(gltf.animations.find(a => a.name === "${clip.name}"));\n`;
         });
     }
-    return `let ${modelName} = await new Promise((resolve, reject) => new GLTFLoader().load("${fileName}", gltf => (world.graphicsWorld.add(gltf.scene), resolve(gltf)), undefined, reject));\n${animationsCode}\n${modelName}.scene.position.copy(${VectorToString(intersectionPoint)});\n\n`;
+    return `
+let ${modelName} = await new Promise((resolve, reject) => { 
+    new GLTFLoader().load("${fileName}", 
+        gltf => { 
+            ${animationsCode}
+            resolve(gltf); 
+        }, 
+        undefined, 
+        reject 
+    ); 
+});
+
+${modelName}.scene.position.copy(${VectorToString(intersectionPoint)});
+world.graphicsWorld.add(${modelName}.scene);
+
+    `;
+    //return `\nlet ${modelName} = await ${loadGLB.name}({ glbUrl: "${fileName}"});\n${animationsCode}\n${modelName}.scene.position.copy(${VectorToString(intersectionPoint)});\n\n`;
+
 }
 function VectorToString(intersectionPoint) {
     return JSON.stringify(intersectionPoint, (key, value) => typeof value === 'number' ? Number(value.toFixed(2)) : value);

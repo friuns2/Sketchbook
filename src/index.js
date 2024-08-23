@@ -78,6 +78,7 @@ let chat = {
                 'build/types/characters/Character.d.ts',
                 'build/types/interfaces/ICharacterAI.d.ts',
                 'build/types/interfaces/ICollider.d.ts',
+                'src/ts/enums/CharacterAnimations.d.ts',
                 'src/ts/characters/character_ai/FollowTarget.ts',
                 'src/helpers.js',                
             ];

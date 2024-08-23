@@ -245,9 +245,57 @@ const originalFindByName = THREE.AnimationClip.findByName;
 THREE.AnimationClip.findByName = (clipArray, name) => {
     const clip = originalFindByName(clipArray, name);
     if (clip === null && clipArray.length > 0) {
+        let bestMatch = null;
+        let bestScore = 0;
+        for (let i = 0; i < clipArray.length; i++) {
+            const score = getSimilarityScore(name, clipArray[i].name);
+            if (score > bestScore && score > 0.4) {
+                bestScore = score;
+                bestMatch = clipArray[i];
+            }
+        }
         console.warn(`Animation clip "${name}" not found, returning the first clip as fallback.`);
-        return clipArray[0];
+        return bestMatch;
     }
     return clip;
 };
+
+function getSimilarityScore(str1, str2) {
+    function levenshteinDistance(a, b) {
+        const matrix = Array(a.length + 1).fill(null).map(() =>
+            Array(b.length + 1).fill(null));
+
+        for (let i = 0; i <= a.length; i += 1) {
+            matrix[i][0] = i;
+        }
+
+        for (let j = 0; j <= b.length; j += 1) {
+            matrix[0][j] = j;
+        }
+
+        for (let i = 1; i <= a.length; i += 1) {
+            for (let j = 1; j <= b.length; j += 1) {
+                const indicator = a[i - 1].toLowerCase() === b[j - 1].toLowerCase() ? 0 : 1;
+                matrix[i][j] = Math.min(
+                    matrix[i][j - 1] + 1, // insertion
+                    matrix[i - 1][j] + 1, // deletion
+                    matrix[i - 1][j - 1] + indicator // substitution
+                );
+            }
+        }
+
+        return matrix[a.length][b.length];
+    }
+
+    const distance = levenshteinDistance(str1.toLowerCase(), str2.toLowerCase());
+    const maxLen = Math.max(str1.length, str2.length);
+
+    if (maxLen === 0) {
+        return 1; // Both strings are empty
+    }
+
+    return (1 - distance / maxLen);
+}
+
+
 
