@@ -101,5 +101,8 @@ async function GetSpawnGLBCode(fileName, intersectionPoint) {
             animationsCode += `${modelName}["${clip.name}"] = ${modelName}.mixer.clipAction(${modelName}.animations.find(a => a.name === "${clip.name}"));\n`;
         });
     }
-    return `let ${modelName} = await ${loadGLB.name}({ glbUrl: "${fileName}"});\n${animationsCode}\n${modelName}.scene.position.copy(${JSON.stringify(intersectionPoint, (key, value) => typeof value === 'number' ? Number(value.toFixed(2)) : value)});\n\n`;
+    return `let ${modelName} = await new Promise((resolve, reject) => new GLTFLoader().load("${fileName}", gltf => (world.graphicsWorld.add(gltf.scene), resolve(gltf)), undefined, reject));\n${animationsCode}\n${modelName}.scene.position.copy(${VectorToString(intersectionPoint)});\n\n`;
+}
+function VectorToString(intersectionPoint) {
+    return JSON.stringify(intersectionPoint, (key, value) => typeof value === 'number' ? Number(value.toFixed(2)) : value);
 }

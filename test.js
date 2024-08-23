@@ -1,85 +1,10 @@
-
-
-    let testObj = {
-        params: {
-            a: 'initial value',
-            aChanged(){
-                console.log('aChanged');
-            }
-        },
-        someMethod() {
-            return this.params.a;
-        },
-        mounted() {
-            console.log('Vue instance mounted with params:', this.params.a);
-        }
-    };
-
-    var vue = InitVue(testObj, {
-        mounted: testObj.mounted
-    });
-
-    vue = new Vue({
-        el: '#app',
-        ...vue
-    });
-function InitVue(obj, args = {}) {
-    var updatedFromHash;
-    let defaultParams = _.cloneDeep(obj.params);
-    const updateParamsFromHash = (event) => {
-        updatedFromHash=true;
-        const hashParams = new URLSearchParams(window.location.hash.slice(1));
-        for (let key in obj.params) {
-            if (!key.startsWith("_"))
-                if (hashParams.has(key))
-                    try { obj.params[key] = JSON.parse(hashParams.get(key)); } catch (e) { obj.params[key] = hashParams.get(key); }
-                else
-                    obj.params[key] = defaultParams[key];
-        }
-        requestAnimationFrame(() => {
-            updatedFromHash = false;
-        });
-    };
-    updateParamsFromHash();
-    window.addEventListener('hashchange', () => {
-        updateParamsFromHash();
-    });
-    return {
-        data: () => {
-            //obj = shallowClone(obj)
-            for (let key in obj) {
-                if (typeof obj[key] === 'function') {
-                    delete obj[key];
-                }
-            }
-            obj.data = obj;
-            return obj;
-        },
-        ...args
-        ,
-        mounted() {
-            Object.assign(obj, this);
-            args.mounted?.call(obj);
-        },
-        methods: Object.keys(obj).reduce((methods, key) => {
-            if (typeof obj[key] === 'function') {
-                methods[key] = obj[key];
-            }
-            return methods;
-        }, {}),
-        watch: Object.keys(obj.params || {}).reduce((watchers, key) => {
-            if (!key.startsWith("_"))
-                watchers["params." + key] = function (newValue) {
-                    const hashParams = new URLSearchParams(window.location.hash.slice(1));
-                    hashParams.set(key, JSON.stringify(newValue));
-                    window.location.hash = hashParams.toString();
-                    console.log(key,newValue,updatedFromHash)
-                    if (updatedFromHash)
-                        obj.params[key + "Changed"]?.call(obj);
-                };
-
-            return watchers;
-            
-        }, args.watch || {})
-    };
-}
+var zombie5 = globalThis.zombie5 = await loadGLB({ glbUrl: "zombie (5).glb"});
+zombie5.mixer = new THREE.AnimationMixer(zombie5.scene);
+zombie5.clips = {};
+["Idle", "Walk1_InPlace", "Walk_InPlace", "Run_InPlace", "Attack", "FallingBack", "FallingForward", "Walk", "Run", "Walk1"].forEach(name => {
+    const action = zombie5.animations.find(a => a.name === name);
+    if (action) {
+        zombie5.clips[name] = zombie5.mixer.clipAction(action);
+    }
+});
+zombie5.scene.position.set(-2.24, 14.8, -1.28);

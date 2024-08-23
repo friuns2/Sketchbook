@@ -22,7 +22,7 @@
                     <button @click.prevent="openModelPicker()" class="btn btn-primary ml-2"><i class="fas fa-search"></i> Search</button>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 overflow-y-auto" style="max-height: calc(100vh - 200px);">
-                    <div v-for="model in models" :key="model.uid" class="card bg-base-100 shadow-xl cursor-pointer" @click="model.downloadModel(model.uid)">
+                    <div v-for="model in models" :key="model.uid" class="card bg-base-100 shadow-xl cursor-pointer" @click="model.downloadModel(model.uid)" :title="'Animations:'+model.animationCount+'\n'+model.description">
                         <figure><img :src="model.thumbnails.images[0].url" :alt="model.name" class="w-full h-48 object-cover" /></figure>
                         <div class="card-body">
                             <h2 class="card-title">{{ model.name }}</h2>
@@ -35,15 +35,7 @@
             </form>
         </dialog>
 
-        <dialog id="download-modal" class="modal" ref="downloadModal">
-            <form method="dialog" class="modal-box">
-                <h3 class="font-bold text-lg">Downloading Model</h3>
-                <p class="py-4">Please wait while we prepare your download...</p>
-                <div class="modal-action">
-                    <button class="btn">Close</button>
-                </div>
-            </form>
-        </dialog>
+        
     </div>
 
     <script src="3dPicker.js"></script>

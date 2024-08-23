@@ -63,8 +63,23 @@
         </div>
         <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center" :style="{ opacity: isCursorLocked ? 1 : 1 }">
             <div class="w-full max-w-xs relative" >
-                <pre id="floating-code" class="floating-code" style="pointer-events: none;" ></pre>
+                <pre id="floating-code" class="floating-code" style="pointer-events: none;" v-html="floatingCode"></pre>
                 <div class="progress-circle w-6 h-6 mr-2" :class="{ hidden: !isLoading }"></div>
+                <div v-if="variants.length > 0" class="flex justify-center mb-2">
+                    <button 
+                        v-for="(variant, index) in variants" 
+                        :key="index"
+                        @click="switchVariant(index)"
+                        class="mx-1 px-3 py-1 rounded-full text-sm font-semibold"
+                        :class="{
+                            'bg-blue-500 text-white': currentVariant === index && !variant.lastError,
+                            'bg-red-500 text-white': variant.lastError,
+                            'bg-gray-300 text-gray-700': currentVariant !== index && !variant.lastError
+                        }"
+                    >
+                        {{ index + 1 }}
+                    </button>
+                </div>
                 <div class="flex items-center">
                     <div class="relative flex-grow">
                         <input type="text" id="gpt-input" v-model="inputText" :placeholder="params.lastText || 'What would you like to create?'" class="input input-bordered w-full max-w-xs pr-10" @keypress.enter="sendInput()" />
@@ -79,16 +94,18 @@
                             <i class="fas fa-redo-alt"></i>
                         </button>
                     </div>
-                    <button v-if="lastError" class="bg-transparent border-none ml-2" @click="onClickError()" :title="lastError">
+                    <button v-if="variants[currentVariant]?.lastError" class="bg-transparent border-none ml-2" @click="onClickError()" :title="variants[currentVariant].lastError">
                         <i class="fas fa-exclamation-circle" style="color: red;"></i>
                     </button>
-
                 </div>
             </div>
             <div id="suggestion-bubbles" class="mt-2">
                 <span v-for="suggestion in suggestions" :key="suggestion" class="suggestion-bubble" @click="inputText = suggestion">{{ suggestion }}</span>
-            </div>
+            </div>       
         </div>
+        <button id="show-3d-picker" class="fixed top-16 left-4 transform bg-transparent border-none z-50" onclick="picker.openModelPicker()">
+            <i class="fas fa-cube" style="font-size: 24px; color: #000;"></i>
+        </button>
     </div>
     <script src="build/sketchbook.min.js"></script>
     <script src="src/helpers.js"></script>

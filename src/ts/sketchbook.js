@@ -5,13 +5,15 @@ import * as CANNONImport from 'cannon';
 import { FollowTarget } from './characters/character_ai/FollowTarget';
 import { FollowPath } from './characters/character_ai/FollowPath';
 import { RandomBehaviour } from './characters/character_ai/RandomBehaviour';
-
-globalThis.CharacterAI ={
+globalThis.CharacterAI = {
     FollowTarget,
     FollowPath,
     RandomBehaviour,
 };
-globalThis.CharacterAI = CharacterAI;
+globalThis.FollowTarget = FollowTarget;
+globalThis.FollowPath = FollowPath;
+globalThis.RandomBehaviour = RandomBehaviour;
+
 import * as Airplane from './vehicles/Airplane';
 globalThis.Airplane = Airplane;
 
@@ -54,3 +56,4 @@ globalThis.EntityType = EntityType;
 
 import { VectorSpringSimulator } from './physics/spring_simulation/VectorSpringSimulator';
 globalThis.VectorSpringSimulator = VectorSpringSimulator;
+

@@ -60,7 +60,7 @@ function InitVue(obj, args = {}) {
 }
 
 
-async function parseFilesFromMessage(message) {
+ function parseFilesFromMessage(message) {
     let files = [];
     let regexHtml = /(?:^|\n)(?:(?:[#*][^\r\n]*?([\w.\-_]+)[^\r\n]*?\n)?\n?```(\w+)\n?(.*?)(?:\n```|$(?!\n)))|(?:<html.*?>.*?(?:<\/html>|$(?!\n)))/gs;
     let match;
@@ -178,42 +178,23 @@ if (!navigator.serviceWorker && !window.location.hostname.startsWith('192')) {
   }
   
   (function() {
-    // Store the original XMLHttpRequest constructor
     const OriginalXMLHttpRequest = XMLHttpRequest;
-  
-    // Create a new constructor that wraps the original XMLHttpRequest
     XMLHttpRequest = function() {
       const xhr = new OriginalXMLHttpRequest();
       let requestURL = '';
-  
-      // Override the open method to capture the URL
       const originalOpen = xhr.open;
-      xhr.open = function(method, url, async, user, password) {
-        requestURL = url; // Store the URL
-        originalOpen.apply(xhr, arguments); // Call the original open method
+      xhr.open = function(method, url) {
+        requestURL = url;
+        originalOpen.apply(xhr, arguments);
       };
-  
-      // Override the getter for responseURL
       Object.defineProperty(xhr, 'responseURL', {
-        get: function() {
-          return requestURL || ''; // Return the tracked URL or an empty string
-        },
+        get: () => requestURL || '',
         configurable: true
       });
-  
-      // Return the wrapped xhr object
       return xhr;
     };
-  
-    // Copy static properties and methods from the original XMLHttpRequest to the new one
-    for (let key in OriginalXMLHttpRequest) {
-      if (OriginalXMLHttpRequest.hasOwnProperty(key)) {
-        XMLHttpRequest[key] = OriginalXMLHttpRequest[key];
-      }
-    }
-  
+    Object.assign(XMLHttpRequest, OriginalXMLHttpRequest);
   })();
-  
   async function LoadComponent(file) {
     try {
         const response = await fetch(file);
@@ -255,4 +236,18 @@ function GetPlayerFront() {
     playerLookPoint.add(direction.multiplyScalar(2));    
     return playerLookPoint;
 }
+
+
+
+
+
+const originalFindByName = THREE.AnimationClip.findByName;
+THREE.AnimationClip.findByName = (clipArray, name) => {
+    const clip = originalFindByName(clipArray, name);
+    if (clip === null && clipArray.length > 0) {
+        console.warn(`Animation clip "${name}" not found, returning the first clip as fallback.`);
+        return clipArray[0];
+    }
+    return clip;
+};
 

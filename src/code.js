@@ -7,6 +7,6 @@ world.registerUpdatable({
     update: () => {
     }
 });
-
+player.addToWorld(world);
 player.takeControl();
 

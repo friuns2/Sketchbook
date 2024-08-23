@@ -1,9 +1,8 @@
-
 async function EvalWithDebug(...content) {
     try {
         await Eval(...content);
-        if(chat.lastError)
-            throw chat.lastError;
+        if (chat.variant.lastError)
+            throw chat.variant.lastError;
     } catch (e) {
         if (e.url && e.url.endsWith('.glb')) {
             if (e.url.toLowerCase().endsWith('.glb')) {
@@ -22,18 +21,17 @@ async function EvalWithDebug(...content) {
             }
         }
         console.error(e);
-        await Eval(chat.params.code);
-        chat.lastError = e;
+        await chat.switchVariant(0, false);
+        chat.variants[0].lastError = e;
     }
 }
 
-
 let lastEvalCode = '';
-async function Eval(...contentArray) {
-    
+async function Eval(...contentArray) 
+{   
     Load();
     await new Promise(requestAnimationFrame);
-    chat.lastError = '';
+    chat.variant.lastError = '';
     
     var content = contentArray.join('\n');
     if(content.includes("world.update = "))
@@ -47,18 +45,15 @@ async function Eval(...contentArray) {
     lastEvalCode = code;
     (0, eval)(code);
     let startTime = Date.now();
-    while (!chat.lastError && Date.now() - startTime < 500) {
+    while (!chat.variant.lastError && Date.now() - startTime < 500) {
         await new Promise(requestAnimationFrame);
     }
-    if (!chat.lastError){
-        console.log("Execution success");
-        chat.params.code = content;
-    }
+    console.log(chat.variant.lastError ? "Execution failed" : "Execution success");
 }
 
 var originalConsoleError = console.error;
 console.error = (...args) => {
-    chat.lastError = {
+    chat.variant.lastError = {
         url: args.map(arg => arg.target?.responseURL).find(a => a),
         message: args.map(arg => {
             return arg.target?.responseURL && `Not Found: ${arg.target.responseURL}. ` 
@@ -86,4 +81,3 @@ window.addEventListener('unhandledrejection', function(event) {
 window.addEventListener('error', function (event) {
     console.error(event);
 });
-
