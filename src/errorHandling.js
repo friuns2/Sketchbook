@@ -3,23 +3,7 @@ async function EvalWithDebug(...content) {
         await Eval(...content);
         if (chat.variant.lastError)
             throw chat.variant.lastError;
-    } catch (e) {
-        if (e.url && e.url.endsWith('.glb')) {
-            if (e.url.toLowerCase().endsWith('.glb')) {
-                // Show picker for GLB file
-                const fileName = e.url.split('/').pop().split('.')[0];
-                picker.openModelPicker(fileName, async (downloadUrl) => {
-                    const response = await fetch(downloadUrl);
-                    const arrayBuffer = await response.arrayBuffer();
-                    navigator.serviceWorker.controller.postMessage({
-                        action: 'uploadFiles',
-                        files: [{ name: e.url, buffer: arrayBuffer }]
-                    });
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    Eval(content)
-                });
-            }
-        }
+    } catch (e) {        
         console.error(e);
         await chat.switchVariant(0, false);
         chat.variants[0].lastError = e;

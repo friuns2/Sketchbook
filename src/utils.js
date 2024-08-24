@@ -121,6 +121,7 @@ function Load() {
     world.characters.push(...globalThis.snapshot.characters);
     world.vehicles.length = 0;
     world.vehicles.push(...globalThis.snapshot.vehicles);
+    world.timeScaleTarget=1
 }
 
 function loadModelWithPhysics({ glbUrl, pos, mass = 1 }) {
@@ -304,3 +305,24 @@ function getSimilarityScore(str1, str2) {
 
 
 
+// Override GLTFLoader.prototype.load to handle fallback
+const originalLoad = GLTFLoader.prototype.load;
+GLTFLoader.prototype.load = function(url, onLoad, onProgress, onError) {
+    originalLoad.call(this, url, onLoad, onProgress, (error) => {
+        console.warn(`Failed to load ${url}, attempting to load fallback.`);
+        originalLoad.call(this, 'notfound.glb', onLoad, onProgress, onError);
+        // Show picker for GLB file
+        const fileName = url.split('/').pop().split('.')[0];
+        picker.openModelPicker(fileName, async (downloadUrl) => {
+            const response = await fetch(downloadUrl);
+            const arrayBuffer = await response.arrayBuffer();
+            navigator.serviceWorker.controller.postMessage({
+                action: 'uploadFiles',
+                files: [{ name: url, buffer: arrayBuffer }]
+            });
+            await new Promise(resolve => setTimeout(resolve, 100));
+            chat.switchVariant(chat.currentVariant);
+        });
+
+    });
+};

@@ -79,6 +79,7 @@ let chat = {
                 'build/types/vehicles/Car.d.ts',
                 'src/ts/enums/CharacterAnimations.ts',
                 'src/ts/characters/character_ai/FollowTarget.ts',
+                'src/ts/characters/character_ai/RandomBehaviour.ts',
                 'src/helpers.js',                
             ];
             
@@ -150,7 +151,7 @@ let chat = {
         this.floatingCode = content;    
         if(this.variant.files.length > 0){
             var code = this.variant.files[0].content;
-            await (debug ? EvalWithDebug(code) : Eval(code));
+            await EvalWithDebug(code);
         }
     }
 
