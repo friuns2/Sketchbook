@@ -11,7 +11,7 @@ let chat = {
     window: window,
     document: document,
     suggestions: ['Add a red cube', 'Create a bouncing ball', 'Generate a 3D tree'],
-
+    lastError: null,
     isLoading: false,
     params: {
         chatId: '',
@@ -39,18 +39,33 @@ let chat = {
         while (!globalThis.player) {
             await new Promise(resolve => setTimeout(resolve, 100));
         }
-		globalThis.SaveReset?.();
+		SaveReset();
 
         if (!this.variant.content)
             this.Clear();
-        
+
         vue.$watch(() => this.params.lastText, (newValue) => {
             document.title = newValue;
         });
+
+
+
+        world.gui.add({ enableBreakpoints: settings.enableBreakpoints }, 'enableBreakpoints').name('Enable Breakpoints').onChange((value) => {
+            settings.enableBreakpoints = value;
+        });
+
+
         //world.timeScaleTarget=0
         //Eval(this.variant.files[0].content);
         
         
+    },
+    async SetSuggestion(suggestion) {
+        this.inputText = '';
+        for (let char of suggestion) {
+            this.inputText += char;
+            await new Promise(resolve => setTimeout(resolve, 30)); // Adjust the delay as needed for typing effect
+        }
     },
     onClickError(){
         this.inputText = this.params.lastText + ' \nPrevious attempt Error: ' + this.variant.lastError + ", do not make it again!";
@@ -71,6 +86,7 @@ let chat = {
         let playerLookPoint = VectorToString(GetPlayerFront());
         
         this.params.lastText = this.inputText || this.params.lastText;
+        Say(this.params.lastText)
         this.inputText = '';
         this.abortController?.abort();
         this.abortController = new AbortController();
@@ -131,9 +147,14 @@ let chat = {
                 updateLock = updateLock.then(async () =>{
                     
                     if(abort)
-                        return;                    
-                    let result = await this.switchVariant(i);
-                    if(!result.error)
+                        return;        
+                    let variant = this.variants[i];
+                    await this.switchVariant(i);
+                    let startTime = Date.now();
+                    while (!variant.lastError && Date.now() - startTime < 1500) {
+                        await new Promise(requestAnimationFrame);
+                    }
+                    if(!variant.lastError)
                         abort = true;
                 });
                 
@@ -153,17 +174,21 @@ let chat = {
 
     },
   
-    async switchVariant(index, debug = true) {
+    async switchVariant(index) {
+        this.lastError = null;
         console.log('switchVariant', index);
         this.currentVariant = index;
-        let content = this.variants[this.currentVariant].content;
+        let variant = this.variants[this.currentVariant];
+        let content = variant.content;
         let data = parseFilesFromMessage(content);
         if(data.files.length>0)
-            this.variants[this.currentVariant].files = data.files;
+            variant.files = data.files;
         this.floatingCode = content;    
-        if(this.variant.files.length > 0){
-            var code = this.variant.files[0].content;
-            return await EvalWithDebug(code);            
+        if(variant.files.length > 0){
+            var code = variant.files[0].content;
+            Reset();
+            await new Promise(resolve => setTimeout(resolve, 100));
+            await Eval(code);            
         }
     }
 
@@ -184,14 +209,6 @@ let vue = chat = new Vue({
 
 LoadComponent('3dPicker.html');
 
-
-/*
-// Assuming you have a dat.GUI instance called 'gui'
-world.gui.add({ clear: function() { 
-    // Call your Clear function here
-    chat.Clear(); 
-}}, 'clear').name('Clear Canvas');
-*/
 
 globalThis.FollowTarget = CharacterAI.FollowTarget;
 globalThis.FollowPath = CharacterAI.FollowPath;

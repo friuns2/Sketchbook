@@ -100,28 +100,30 @@ function InitVue(obj, args = {}) {
 
     return { messageWithoutCodeBlocks, files };
 }
-
+var snapshot;
 function SaveReset() {
-    globalThis.snapshot = {
+    snapshot = {
         graphicsWorld: world.graphicsWorld.children.slice(),
         physicsWorld: world.physicsWorld.bodies.slice(),
         updatables:world.updatables.slice(),
         characters:world.characters.slice(),
-        vehicles:world.vehicles.slice()
+        vehicles:world.vehicles.slice(),
+        player:player
     };
 }
 function Reset() {    
     world.graphicsWorld.children.length = 0;
-    world.graphicsWorld.children.push(...globalThis.snapshot.graphicsWorld);
+    world.graphicsWorld.children.push(...snapshot.graphicsWorld);
     [...world.physicsWorld.bodies].forEach(body => world.physicsWorld.remove(body));
-    globalThis.snapshot.physicsWorld.forEach(body => world.physicsWorld.addBody(body));
+    snapshot.physicsWorld.forEach(body => world.physicsWorld.addBody(body));
     world.updatables.length = 0;
-    world.updatables.push(...globalThis.snapshot.updatables);
+    world.updatables.push(...snapshot.updatables);
     world.characters.length = 0;
-    world.characters.push(...globalThis.snapshot.characters);
+    world.characters.push(...snapshot.characters);
     world.vehicles.length = 0;
-    world.vehicles.push(...globalThis.snapshot.vehicles);
-    world.timeScaleTarget=1
+    world.vehicles.push(...snapshot.vehicles);
+    world.timeScaleTarget=1;
+    globalThis.player = snapshot.player;    
 }
 
 
@@ -348,21 +350,6 @@ function AutoScale({ gltfScene, approximateScaleInMeters = 5}) {
     world.render(world);
 }
 
-function setPivot(gltf) {
-    const model = gltf.scene;
-    const boundingBox = new THREE.Box3().setFromObject(model);
-    const center = boundingBox.getCenter(new THREE.Vector3());
-    model.position.x -= center.x * gltf.scene.scale.x;
-    model.position.z -= center.z * gltf.scene.scale.z;
-    model.position.y -= boundingBox.min.y * gltf.scene.scale.y;
-
-    // Create a new parent object and add the model to it
-    const parent = new THREE.Object3D();
-    parent.add(model);
-
-    // Replace the original scene with the new parent
-    gltf.scene = parent;
-}
 
 function Object3DToHierarchy(gltf) {
     function buildHierarchy(object, indent = '') {

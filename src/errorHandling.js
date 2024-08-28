@@ -1,55 +1,45 @@
-async function EvalWithDebug(...content) {
-    try {
-        Reset();
-        await new Promise(resolve => setTimeout(resolve, 0));
-        await Eval(content.join('\n'));
-        if (chat.variant.lastError)
-            throw chat.variant.lastError;
-    } catch (e) {        
-        console.error(e);        
-        return {error: e};
-    }
-    return {};
-}
+
 
 let lastEvalCode = '';
 async function Eval(content) 
 {   
     chat.variant.lastError = '';
     
-    var removedPlayer = content.includes("let playerModel = globalThis.playerModel = await loader.loadAsync('build/assets/boxman.glb')");
+    //var removedPlayer = content.includes("let playerModel = globalThis.playerModel = await loader.loadAsync('build/assets/boxman.glb')");
+
 
     var code = "(async () => {\n" + content
         .replace(/^.*(?:new World\(|world\.initialize).*$\n?/gm, '')
+        .replace(/world\.render\(world\);/g, '')
         .replace(/\b(let|const)\s+(\w+)\s*=/g, 'var $2 = globalThis.$2 =')        
+        + (settings.enableBreakpoints ? ";debugger;" : "")
         + "\n})();"
-        //+ ";debugger;"
         
-    if(removedPlayer)
-        code = code.replace(/^.*(?:let playerModel = globalThis\.playerModel = await loader\.loadAsync\('build\/assets\/boxman\.glb'\);|var player = globalThis\.player = new Character\(playerModel\);|world\.add\(player\);).*$\n?/gm, '')
+    //if(removedPlayer)
+    //    code = code.replace(/^.*(?:let playerModel = globalThis\.playerModel = await loader\.loadAsync\('build\/assets\/boxman\.glb'\);|var player = globalThis\.player = new Character\(playerModel\);|world\.add\(player\);).*$\n?/gm, '')
 //    else
   //      world.remove(player);
-
-    
-    if (code != chat.variant.files[0].content)
+      
+    if (chat.currentVariant!=0)
         console.log(code);
     if(content.includes("world.update = "))
         throw new Error("direct assign world.update = function(){} is not allowed, use extendMethod");
     lastEvalCode = code;
-    (0, eval)(code);
-    let startTime = Date.now();
-    while (!chat.variant.lastError && Date.now() - startTime < 500) {
-        await new Promise(requestAnimationFrame);
+    try
+    {
+        (0, eval)(code);    
     }
-    console.log(chat.variant.lastError ? "Execution failed" : "Execution success");
-    if(chat.variant.lastError) throw chat.variant.lastError;
+    catch(e)
+    {
+        console.error(e);
+    }
 }
 
 var originalConsoleError = console.error;
 console.error = (...args) => {
     if (args[0].message === "The user has exited the lock before this request was completed.")
         return;
-    chat.variant.lastError = {
+    let error = chat.variant.lastError = {
         url: args.map(arg => arg.target?.responseURL).find(a => a),
         message: args.map(arg => {
             return arg.target?.responseURL && `Not Found: ${arg.target.responseURL}. ` 
@@ -65,7 +55,7 @@ console.error = (...args) => {
     if (chat.currentVariant != 0)
     {
         chat.switchVariant(0, false).then(() => {
-            chat.variants[0].lastError = e;
+            chat.lastError = error;
         });
         
     }

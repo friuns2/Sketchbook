@@ -79,13 +79,13 @@ export class Character extends THREE.Object3D implements IWorldEntity
 	public controlledObject: IControllable;
 	public occupyingSeat: VehicleSeat = null;
 	public vehicleEntryInstance: VehicleEntryInstance = null;
-	
+	public gltf: any;
 	private physicsEnabled: boolean = true;
 
 	constructor(gltf: any)
 	{
 		super();
-
+		this.gltf = gltf;
 		this.readCharacterData(gltf);
 		this.setAnimations(gltf.animations);
 

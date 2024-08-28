@@ -69,6 +69,7 @@
                     <button 
                         v-for="(variant, index) in variants" 
                         :key="index"
+                        :title="variant.lastError"
                         @click="switchVariant(index)"
                         class="mx-1 px-3 py-1 rounded-full text-sm font-semibold"
                         :class="{
@@ -94,13 +95,13 @@
                             <i class="fas fa-redo-alt"></i>
                         </button>
                     </div>
-                    <button v-if="variants[currentVariant]?.lastError" class="bg-transparent border-none ml-2" @click="onClickError()" :title="variants[currentVariant].lastError">
+                    <button v-if="lastError" class="bg-transparent border-none ml-2" @click="onClickError()" :title="lastError">
                         <i class="fas fa-exclamation-circle" style="color: red;"></i>
                     </button>
                 </div>
             </div>
             <div id="suggestion-bubbles" class="mt-2">
-                <span v-for="suggestion in suggestions" :key="suggestion" class="suggestion-bubble" @click="inputText = suggestion">{{ suggestion }}</span>
+                <span v-for="suggestion in suggestions" :key="suggestion" class="suggestion-bubble" @click="SetSuggestion(suggestion)">{{ suggestion }}</span>
             </div>       
         </div>
         <button id="show-3d-picker" class="fixed top-16 left-4 transform bg-transparent border-none z-50" onclick="picker.openModelPicker()">
@@ -118,6 +119,7 @@
     <script src="src/index.js"></script>
     <script src="localSettings.js"></script>
     <script src="src/code.js"></script>
+    <script src="src/tts.js"></script>
     <script>
    
     </script>

@@ -86,8 +86,8 @@ export class Scenario
 					}
 					else if (child.userData.type === 'player')
 					{
-						//let sp = new CharacterSpawnPoint(child);
-						//this.spawnPoints.push(sp);
+						let sp = new CharacterSpawnPoint(child);
+						this.spawnPoints.push(sp);
 					}
 				}
 			}

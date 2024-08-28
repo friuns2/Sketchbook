@@ -326,6 +326,7 @@ export class World
 
 	public remove(worldEntity: IWorldEntity): void
 	{
+		if(!worldEntity)return;
 		worldEntity.removeFromWorld(this);
 		this.unregisterUpdatable(worldEntity);
 	}

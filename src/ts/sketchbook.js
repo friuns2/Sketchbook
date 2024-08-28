@@ -37,22 +37,24 @@ import { Character } from './characters/Character';
 globalThis.Character = Character;
 import { KeyBinding } from './core/KeyBinding';
 globalThis.KeyBinding = KeyBinding;
-
 globalThis.THREE = THREEImport;
+globalThis.CANNON = CANNONImport;
+/*
 for (const key in THREEImport) {
-    if (!key.startsWith('Math')) {
+    if (!key.startsWith('Math') && !key.startsWith('Audio')) {
         globalThis[key] = THREEImport[key];
     }
     else
     {
-        globalThis["Mathf"] = THREEImport[key];
+        globalThis["Mathf"] = THREEImport["Math"];
     }
 }
-globalThis.CANNON = CANNONImport;
 Object.assign(globalThis, CANNONImport);
-
+*/
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 globalThis.GLTFLoader = GLTFLoader;
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
+globalThis.FBXLoader = FBXLoader;
 import { LoadingManager } from './core/LoadingManager';
 globalThis.LoadingManager = LoadingManager;
 

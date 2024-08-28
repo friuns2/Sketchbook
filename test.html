@@ -1,111 +1,32 @@
-
-<html><head><title>Feature Discovery with DaisyUI</title>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.1.6/dist/full.css" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      @keyframes pulse-highlight {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5); }
-        50% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); }
-      }
-      .feature-highlight {
-        animation: pulse-highlight 2s infinite;
-      }
-      .tutorial-bubble {
-        position: absolute;
-        background-color: #570DF8;
-        color: white;
-        padding: 10px;
-        border-radius: 8px;
-        font-size: 14px;
-        max-width: 200px;
-      }
-      .tutorial-bubble::after {
-        content: "";
-        position: absolute;
-        bottom: -10px;
-        left: 50%;
-        margin-left: -10px;
-        border-width: 10px 10px 0;
-        border-style: solid;
-        border-color: #570DF8 transparent transparent;
-      }
-    </style>
-    </head>
-    <body class="bg-base-200 min-h-screen flex flex-col items-center justify-center">
-      <script src="src/stable3d.js"></script>
-    
-    <div class="navbar bg-base-100 shadow-lg rounded-box w-full max-w-4xl mb-8">
-      <div class="flex-1">
-        <a class="btn btn-ghost normal-case text-xl">FeatureDiscovery</a>
-      </div>
-      <div class="flex-none">
-        <button class="btn btn-square btn-ghost" id="searchBtn">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-5 h-5 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-        </button>
-        <button class="btn btn-square btn-ghost" id="notificationBtn">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-5 h-5 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-        </button>
-        <button class="btn btn-square btn-ghost" id="profileBtn">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-5 h-5 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-        </button>
-      </div>
-    </div>
-    
-    <div class="card w-96 bg-base-100 shadow-xl">
-      <figure><img src="https://picsum.photos/400/200" alt="Shoes" /></figure>
-      <div class="card-body">
-        <h2 class="card-title">New feature!</h2>
-        <p>Click the buttons above to discover new features!</p>
-        <div class="card-actions justify-end">
-          <button class="btn btn-primary" id="startTour">Start Tour</button>
-        </div>
-      </div>
-    </div>
-    
-    <div id="tutorialBubble" class="tutorial-bubble" style="display: none;"></div>
-    
-    <script>
-    const features = [
-      { id: 'searchBtn', content: 'Use this to search for anything on our platform.' },
-      { id: 'notificationBtn', content: 'Stay updated with the latest news and alerts.' },
-      { id: 'profileBtn', content: 'Access your personal profile and settings here.' }
-    ];
-    
-    let currentFeatureIndex = 0;
-    
-    function showFeature(index) {
-      const feature = features[index];
-      const element = document.getElementById(feature.id);
-      
-      document.querySelectorAll('.feature-highlight').forEach(el => el.classList.remove('feature-highlight'));
-      element.classList.add('feature-highlight');
-      
-      const tutorialBubble = document.getElementById('tutorialBubble');
-      tutorialBubble.textContent = feature.content;
-      
-      const elementRect = element.getBoundingClientRect();
-      
-      tutorialBubble.style.left = elementRect.left + (elementRect.width - tutorialBubble.offsetWidth) / 2 + 'px';
-      tutorialBubble.style.top = elementRect.top - tutorialBubble.offsetHeight - 10 + 'px';
-      tutorialBubble.style.display = 'block';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typing Text Animation</title>
+  <style>
+    .typing-text {
+      overflow: hidden;
+      white-space: nowrap;
+      width: 0;
+      animation: typing 3s steps(30, end) forwards;
     }
-    
-    document.getElementById('startTour').addEventListener('click', () => {
-      currentFeatureIndex = 0;
-      showFeature(currentFeatureIndex);
-    });
-    
-    document.addEventListener('click', (event) => {
-      if (!event.target.closest('.feature-highlight')) {
-        currentFeatureIndex = (currentFeatureIndex + 1) % features.length;
-        if (currentFeatureIndex === 0) {
-          document.getElementById('tutorialBubble').style.display = 'none';
-          document.querySelectorAll('.feature-highlight').forEach(el => el.classList.remove('feature-highlight'));
-        } else {
-          showFeature(currentFeatureIndex);
-        }
-      }
-    });
-    </script>
-    
-    </body></html>
+
+    @keyframes typing {
+      to { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <input class="typing-text" placeholder="This is an example of typing text animation.">
+  <script>
+    const typingText = document.querySelector('.typing-text');
+    setTimeout(() => {
+      typingText.placeholder = "This text has been changed dynamically!";
+      typingText.style.animation = 'none';
+      typingText.offsetWidth;
+      typingText.style.animation = null; 
+    }, 3000);
+  </script>
+</body>
+</html>

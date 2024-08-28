@@ -137,6 +137,17 @@ function initCar(car, carModel, h = 0.45) {
         }
     });
 }
+function fixPivotCenter(gltf) {
+    const model = gltf.scene;
+    const boundingBox = new THREE.Box3().setFromObject(model);
+    const center = boundingBox.getCenter(new THREE.Vector3());
+    model.position.x -= center.x * gltf.scene.scale.x;
+    model.position.z -= center.z * gltf.scene.scale.z;
+    model.position.y -= boundingBox.min.y * gltf.scene.scale.y;
+    const parent = new THREE.Object3D();
+    parent.add(model);
+    gltf.scene = parent;
+}
 
 
 

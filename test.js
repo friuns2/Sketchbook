@@ -27,3 +27,4 @@ let teslaModel = await loader.loadAsync('build/assets/tesla.glb');
 let tesla = new Car(teslaModel);
 tesla.setPosition(-2.82, 14.86, -4.81);
 world.add(tesla);
+SkeletonUtils.SkeletonUtils.retarget
