@@ -292,8 +292,7 @@ function getSimilarityScore(str1, str2) {
     return (1 - distance / maxLen);
 }
 
-function AutoScale({ gltfScene, approximateScaleInMeters = 5}) {
-    const model = gltfScene;
+function AutoScale(model, approximateScaleInMeters = 5) {
     const boundingBox = new THREE.Box3().setFromObject(model);
     const size = new THREE.Vector3();
     boundingBox.getSize(size);

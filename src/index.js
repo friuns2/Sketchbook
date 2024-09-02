@@ -95,6 +95,9 @@ let chat = {
 
         input.click();
     },
+    copyCodeToClipboard(variant){
+        navigator.clipboard.writeText(variant.files[0].content)
+    },
     onClickError(){
         this.inputText = this.params.lastText + ' \nPrevious attempt Error: ' + this.variant.lastError + ", do not make it again!";
     },

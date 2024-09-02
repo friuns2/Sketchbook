@@ -76,7 +76,7 @@
             };
             reader.readAsText(file);
         } else {
-            alert('Please drop a valid GLB, JS, or image file.');
+        //    alert('Please drop a valid GLB, JS, or image file.');
         }
     });
     var mouse = new THREE.Vector2();
@@ -102,7 +102,7 @@ async function GetSpawnGLBCode(fileName, intersectionPoint, setPivot = false) {
     let isSkinnedMesh = false;
     gltf.scene.traverse(a => isSkinnedMesh ||= a instanceof THREE.SkinnedMesh);
     
-    const modelName = "a"+fileName.split('.').slice(0, -1).join('_').replace(/[^a-zA-Z0-9_]/g, '');
+    const modelName = "a"+fileName.split('.').slice(0, -1).join('_').replace(/[^a-zA-Z0-9_]/g, '').substring(0, 7);
     let animationsCode = animations && animations.length > 0 ? `
             gltf.animations.forEach(a => {
                 /* CRITICAL: Uncomment and assign correct CAnims to each animation immediately!

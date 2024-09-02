@@ -163,11 +163,10 @@ let defaultMaterial = new CANNON.Material('defaultMaterial');
 defaultMaterial.friction = 0.3;
 class BaseObject extends THREE.Object3D {
     constructor(model, isStatic = false) {
-        super();
-        expose(model, model.name);
+        super();        
         const bbox = new THREE.Box3().setFromObject(model);
         const size = bbox.getSize(new THREE.Vector3()).multiplyScalar(0.5);
-        const center = new THREE.Vector3();
+        const center = new THREE.Vector3();        
         bbox.getCenter(center);
         model.position.copy(center.negate());
         this.add(model);
@@ -181,14 +180,28 @@ class BaseObject extends THREE.Object3D {
         this.body.friction = 0.3;
     }
     updateOrder = 0;
-
+    oldPosition = new THREE.Vector3();
+    oldQuaternion = new THREE.Quaternion();
     setPosition(pos) {
         this.body.position.copy(Utils.cannonVector(pos));
         this.position.copy(pos);
-    }
+    }   
     update() {
-        this.position.copy(Utils.threeVector(this.body.position));
-        this.quaternion.copy(Utils.threeQuat(this.body.quaternion));
+        
+        const newPosition = Utils.threeVector(this.body.position);
+        const newQuaternion = Utils.threeQuat(this.body.quaternion);
+        
+        if (!this.oldPosition.equals(newPosition) || !this.oldQuaternion.equals(newQuaternion)) {
+            this.oldPosition.copy(this.position);
+            this.oldQuaternion.copy(this.quaternion);
+            this.position.copy(newPosition);
+            this.quaternion.copy(newQuaternion);
+        } else {
+            this.body.position.copy(Utils.cannonVector(this.position));
+            this.body.quaternion.copy(Utils.cannonQuat(this.quaternion));
+        }
+        this.oldPosition.copy(this.position);
+        this.oldQuaternion.copy(this.quaternion);
     }
     addToWorld(world) {
         world.graphicsWorld.add(this);
@@ -200,36 +213,57 @@ class BaseObject extends THREE.Object3D {
     }
 }
 
+THREE.Object3D.prototype.removeFromParent = function () {
+    //removeFromParentPreserveScaleAndKeepWorldPosition
+    if (!this.parent) return;
+    
+    this.updateWorldMatrix(true, true);
+    const worldScale = this.getWorldScale(new THREE.Vector3());
+    const worldPosition = this.getWorldPosition(new THREE.Vector3());
+    const worldQuaternion = this.getWorldQuaternion(new THREE.Quaternion());
+    
+    this.parent.remove(this);
+    this.updateWorldMatrix(true, true);
+    world.add(this);
+    this.scale.copy(worldScale);
+    this.setPosition(worldPosition);  
+    this.quaternion.copy(worldQuaternion);
+};
 
 THREE.Object3D.prototype.addWithPreservedScale = function (child) {
     child.updateWorldMatrix(true, true);
     this.updateWorldMatrix(true, true);
-    const childWorldScale = child.getWorldScale();
-    const parentWorldScale = this.getWorldScale();
+    child.position.set(0,0,0);
+    child.rotation.set(0, 0, 0);
+    world.remove(child);
+    const childWorldScale = child.getWorldScale(new THREE.Vector3());
+    const parentWorldScale = this.getWorldScale(new THREE.Vector3());
+    
     this.add(child);
     child.scale.copy(childWorldScale.divide(parentWorldScale));
-
 };
 function expose(obj,name = obj.name) {
     try {
-        const folder = world.gui.addFolder(name);
-        const storageKey = `${name}_transform`;
-        const savedValues = JSON.parse(localStorage.getItem(storageKey) || '{}');
-        obj.updateWorldMatrix(true, true);
+        requestAnimationFrame(() => {
 
-        ['position', 'rotation', 'scale'].forEach(prop => {
-            ['x', 'y', 'z'].forEach(axis => {
-                const name = `${prop.charAt(0).toUpperCase() + prop.slice(1)} ${axis.toUpperCase()}`;
-                const controller = folder.add(obj[prop], axis, -10.0, 10.0).name(name);
+            const folder = world.gui.addFolder(name);
+            const storageKey = `${name}_transform`;
+            const savedValues = JSON.parse(localStorage.getItem(storageKey) || '{}');
 
-                if (savedValues[name] !== undefined) {
-                    obj[prop][axis] = savedValues[name];
-                    controller.updateDisplay();
-                }
+            ['position', 'rotation', 'scale'].forEach(prop => {
+                ['x', 'y', 'z'].forEach(axis => {
+                    const name = `${prop.charAt(0).toUpperCase() + prop.slice(1)} ${axis.toUpperCase()}`;
+                    const controller = folder.add(obj[prop], axis, -10.0, 10.0, 0.01).name(name);
 
-                controller.onChange(value => {
-                    savedValues[name] = value;
-                    localStorage.setItem(storageKey, JSON.stringify(savedValues));
+                    if (savedValues[name] !== undefined) {
+                        obj[prop][axis] = savedValues[name];
+                        controller.updateDisplay();
+                    }
+
+                    controller.onChange(value => {
+                        savedValues[name] = value;
+                        localStorage.setItem(storageKey, JSON.stringify(savedValues));
+                    });
                 });
             });
         });
