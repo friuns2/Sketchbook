@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import * as CANNON from 'cannon';
 import * as _ from 'lodash';
 import * as Utils from '../core/FunctionLibrary';
-
+import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 import { KeyBinding } from '../core/KeyBinding';
 import { VectorSpringSimulator } from '../physics/spring_simulation/VectorSpringSimulator';
 import { RelativeSpringSimulator } from '../physics/spring_simulation/RelativeSpringSimulator';
@@ -85,7 +85,7 @@ export class Character extends THREE.Object3D implements IWorldEntity
 	public gltf: any;
 	private physicsEnabled: boolean = true;
 
-	constructor(gltf: any)
+	constructor(gltf: GLTF)
 	{
 		super();
 		this.gltf = gltf;
@@ -165,7 +165,7 @@ export class Character extends THREE.Object3D implements IWorldEntity
 		this.setState(new Idle(this));
 	}
 
-	public setAnimations(animations: []): void
+	public setAnimations(animations: THREE.AnimationClip[]): void
 	{
 		this.animations = animations;
 	}

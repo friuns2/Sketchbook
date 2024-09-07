@@ -130,10 +130,10 @@ THREE.Object3D.prototype.removeFromParent = function () {
     this.quaternion.copy(worldQuaternion);
 };
 
-function expose(obj,name = obj.name) {
-    try {
-        requestAnimationFrame(() => {
+function expose(obj, name = obj.name) {
 
+    requestAnimationFrame(() => {
+        try {
             const folder = world.gui.addFolder(name);
             const storageKey = `${name}_transform`;
             const savedValues = JSON.parse(localStorage.getItem(storageKey) || '{}');
@@ -154,13 +154,14 @@ function expose(obj,name = obj.name) {
                     });
                 });
             });
-        });
+        }
+        catch (e) {
+            console.log(e);
+        }
+    });
 
         
-    }
-    catch (e) {
-        console.log(e);
-    }
+    
 }
 function initCar(car, carModel, h = 0.45) {
     // Set up wheels

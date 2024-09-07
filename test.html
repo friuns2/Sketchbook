@@ -1,23 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Three.quarks Example</title>
-    <script src="https://unpkg.com/three@0.146.0/build/three.min.js"></script>
-    <script src="https://unpkg.com/three.quarks@0.10.3/dist/three.quarks.min.js"></script>    
-    <script src="https://cdn.jsdelivr.net/npm/three@0.146.0/examples/js/controls/OrbitControls.js"></script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TypeScript in Browser</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/typescript/4.7.4/typescript.min.js"></script>
+</head>
+<body>
 
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
+<textarea id="code" cols="30" rows="10">
+let x: n3umber = 10;
+console.log(x);
+</textarea>
+
+<button onclick="transpileAndRun()">Run TypeScript</button>
+
+<pre id="output"></pre>
+
+<script>
+  function transpileAndRun() {
+    const code = document.getElementById('code').value;
+    const output = document.getElementById('output');
+    output.textContent = ''; // Clear previous output
+
+    try {
+      // Compile the TypeScript code with full error diagnostics
+      const transpileResult = ts.transpileModule(code, {
+        reportDiagnostics: true, // Enable error reporting
+        compilerOptions: { module: ts.ModuleKind.CommonJS }
+      });
+
+      // Check for any diagnostics (i.e., TypeScript errors)
+      if (transpileResult.diagnostics && transpileResult.diagnostics.length > 0) {
+        const errorMessages = transpileResult.diagnostics.map(diag => {
+          const message = ts.flattenDiagnosticMessageText(diag.messageText, '\n');
+          return `Error: ${message}`;
+        }).join('\n');
+        throw new Error(errorMessages);
       }
-    </style>
-   
-  </head>
-  <body>
-    <script src="test.js"></script>
-  </body>
+
+      // No TypeScript errors? Let's evaluate the transpiled JS code
+      try {
+        eval(transpileResult.outputText);
+        output.textContent = 'Code executed successfully';
+      } catch (runtimeError) {
+        output.textContent = 'Runtime error: ' + runtimeError.message;
+      }
+
+    } catch (transpileError) {
+      output.textContent = 'Transpile error: ' + transpileError.message;
+    }
+  }
+</script>
+
+</body>
 </html>

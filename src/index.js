@@ -24,7 +24,7 @@ let chat = {
         lastText: ''        
     },
     isCursorLocked:false,
-    messages:[],
+    messageLog:[],
     get isMobile(){
         return window.innerWidth < 768;
     },
@@ -102,8 +102,8 @@ let chat = {
     },
     async undoLastAction() {
 
-        this.messages.pop();
-        this.inputText = this.messages[this.messages.length - 1]?.user || '';
+        this.messageLog.pop();
+        this.inputText = this.messageLog[this.messageLog.length - 1]?.user || '';
     },
     async Clear(){
         this.variant.content='';
@@ -163,9 +163,9 @@ let chat = {
             const filesMessage = (await Promise.all(fetchPromises)).map(file => `<file name="${file.name}">\n${file.content}\n</file>`).join('\n\n');
             
             // Create a string with previous user messages
-            const previousUserMessages = chat.messages.length && ("<Previous_messages>\n" + chat.messages
+            const previousUserMessages = chat.messageLog.length && ("<Previous_user_messages>\n" + chat.messageLog
                 .map(msg => msg.user)
-                .join('\n') + "\n</Previous_messages>");
+                .join('\n') + "\n</Previous_user_messages>");
             let code = this.variant.files[0].content;
             this.variants[0] = this.variant;
             this.currentVariant = 0;
@@ -178,7 +178,7 @@ let chat = {
                     //    { role: "system", content: settings.rules  },
                         //{ role: "assistant", content: `When user says: spawn or add object, then spawn it at near player position: ${playerLookPoint}` },
                         { role: "system", content: filesMessage },
-                        { role: "user", content: `${previousUserMessages}\n\nCurrent code:\n\`\`\`javascript\n${code}\n\`\`\`\n\n${settings.importantRules}Rewrite current code to accomplish user desire: ${this.params.lastText}` }
+                        { role: "user", content: `${previousUserMessages}\n\nCurrent code:\n\`\`\`javascript\n${code}\n\`\`\`\n\n${settings.importantRules}Rewrite current code to accomplish user complain: ${this.params.lastText}` }
                     ],
                     signal: this.abortController.signal
                 });
@@ -212,8 +212,8 @@ let chat = {
             }));
             
             console.log(chat.floatingCode)
-            if (this.messages[this.messages.length - 1]?.user != this.params.lastText) {
-                this.messages.push({ user: this.params.lastText });
+            if (this.messageLog[this.messageLog.length - 1]?.user != this.params.lastText) {
+                this.messageLog.push({ user: this.params.lastText });
             }
         } catch (e) {
             if(e.name == 'AbortError')
