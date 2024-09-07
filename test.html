@@ -1,57 +1,79 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TypeScript in Browser</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/typescript/4.7.4/typescript.min.js"></script>
+
+<!DOCTYPE html><html lang="en"><head><meta name="referrer" content="no-referrer-when-downgrade">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monaco Type Checking Game</title>
+  <style>
+      body {
+          font-family: Arial, sans-serif;
+          background-color: #1e1e1e;
+          color: #d4d4d4;
+          margin: 0;
+          padding: 20px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+      }
+      #editor {
+          width: 800px;
+          height: 400px;
+          border: 1px solid #454545;
+          margin-bottom: 20px;
+      }
+      #submit {
+          background-color: #0e639c;
+          color: white;
+          border: none;
+          padding: 10px 20px;
+          font-size: 16px;
+          cursor: pointer;
+      }
+      #submit:hover {
+          background-color: #1177bb;
+      }
+      #result {
+          font-size: 18px;
+          margin-top: 20px;
+      }
+      .correct {
+          color: #4ec9b0;
+      }
+      .incorrect {
+          color: #f48771;
+      }
+  </style>
 </head>
 <body>
+  <h1>Monaco Type Checking Game</h1>
+  <p>Fix the TypeScript errors in the code below:</p>
+  <div id="editor"></div>
+  <button id="submit">Check Types</button>
+  <div id="result"></div>
 
-<textarea id="code" cols="30" rows="10">
-let x: n3umber = 10;
-console.log(x);
-</textarea>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.30.1/min/vs/loader.min.js"></script>
+  <script>
+      
 
-<button onclick="transpileAndRun()">Run TypeScript</button>
+      require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.30.1/min/vs' } });
 
-<pre id="output"></pre>
+      require(['vs/editor/editor.main'], function () {
+          let editor = monaco.editor.create(document.getElementById('editor'), {
+              value: `function greet(name: string) {\n    console.log("Hello, " + name + "!");\n}\n\nlet user = 42;\ngreet(user);`,
+              language: 'typescript',
+              theme: 'vs-dark'
+          });
 
-<script>
-  function transpileAndRun() {
-    const code = document.getElementById('code').value;
-    const output = document.getElementById('output');
-    output.textContent = ''; // Clear previous output
+          document.getElementById('submit').addEventListener('click', function() {
+              let userCode = editor.getValue();
+              let resultElement = document.getElementById('result');
 
-    try {
-      // Compile the TypeScript code with full error diagnostics
-      const transpileResult = ts.transpileModule(code, {
-        reportDiagnostics: true, // Enable error reporting
-        compilerOptions: { module: ts.ModuleKind.CommonJS }
+              if (userCode.trim() === GG_ALL_GAME_CONFIG.correctCode.trim()) {
+                  resultElement.innerHTML = '<span class="correct">Correct! The type error has been fixed.</span>';
+              } else {
+                  resultElement.innerHTML = '<span class="incorrect">Not quite right. Try again!</span>';
+              }
+          });
       });
+  </script>
 
-      // Check for any diagnostics (i.e., TypeScript errors)
-      if (transpileResult.diagnostics && transpileResult.diagnostics.length > 0) {
-        const errorMessages = transpileResult.diagnostics.map(diag => {
-          const message = ts.flattenDiagnosticMessageText(diag.messageText, '\n');
-          return `Error: ${message}`;
-        }).join('\n');
-        throw new Error(errorMessages);
-      }
-
-      // No TypeScript errors? Let's evaluate the transpiled JS code
-      try {
-        eval(transpileResult.outputText);
-        output.textContent = 'Code executed successfully';
-      } catch (runtimeError) {
-        output.textContent = 'Runtime error: ' + runtimeError.message;
-      }
-
-    } catch (transpileError) {
-      output.textContent = 'Transpile error: ' + transpileError.message;
-    }
-  }
-</script>
-
-</body>
-</html>
+</body></html>

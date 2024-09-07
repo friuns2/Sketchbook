@@ -249,64 +249,56 @@ export class InputManager implements IUpdatable
 
 	public onMouseDown(event: MouseEvent): void
 	{
-		if (this.pointerLock)
-		{
-			this.domElement.requestPointerLock();
-		}
-		else
-		{
-			this.domElement.addEventListener('mousemove', this.boundOnMouseMove, false);
-			this.domElement.addEventListener('mouseup', this.boundOnMouseUp, false);
+		if (event.button === 0) { // Check if the left mouse button is clicked
+			if (this.pointerLock) {
+				this.domElement.requestPointerLock();
+			} else {
+				this.domElement.addEventListener('mousemove', this.boundOnMouseMove, false);
+				this.domElement.addEventListener('mouseup', this.boundOnMouseUp, false);
+			}
 		}
 
-		if (this.inputReceiver !== undefined)
-		{
+		if (this.inputReceiver !== undefined) {
 			this.inputReceiver.handleMouseButton(event, 'mouse' + event.button, true);
 		}
 	}
 
 	public onMouseMove(event: MouseEvent): void
 	{
-		if (this.inputReceiver !== undefined)
-		{
+		if (this.inputReceiver !== undefined) {
 			this.inputReceiver.handleMouseMove(event, event.movementX, event.movementY);
 		}
 	}
 
 	public onMouseUp(event: MouseEvent): void
 	{
-		if (!this.pointerLock)
-		{
+		if (!this.pointerLock) {
 			this.domElement.removeEventListener('mousemove', this.boundOnMouseMove, false);
 			this.domElement.removeEventListener('mouseup', this.boundOnMouseUp, false);
 		}
 
-		if (this.inputReceiver !== undefined)
-		{
+		if (this.inputReceiver !== undefined) {
 			this.inputReceiver.handleMouseButton(event, 'mouse' + event.button, false);
 		}
 	}
 
 	public onKeyDown(event: KeyboardEvent): void
 	{
-		if (this.inputReceiver !== undefined)
-		{
+		if (this.inputReceiver !== undefined) {
 			this.inputReceiver.handleKeyboardEvent(event, event.code, true);
 		}
 	}
 
 	public onKeyUp(event: KeyboardEvent): void
 	{
-		if (this.inputReceiver !== undefined)
-		{
+		if (this.inputReceiver !== undefined) {
 			this.inputReceiver.handleKeyboardEvent(event, event.code, false);
 		}
 	}
 
 	public onMouseWheelMove(event: WheelEvent): void
 	{
-		if (this.inputReceiver !== undefined)
-		{
+		if (this.inputReceiver !== undefined) {
 			this.inputReceiver.handleMouseWheel(event, event.deltaY);
 		}
 	}

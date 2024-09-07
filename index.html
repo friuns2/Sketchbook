@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <title>Sketchbook</title>
+    <meta name="viewport" content=" user-scalable=no">
     <link href="https://cdn.jsdelivr.net/npm/daisyui@3.1.6/dist/full.min.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&display=swap" rel="stylesheet">
@@ -11,6 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/typescript@5.5.4/lib/typescript.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    
 </head>
 <style>
     .swal2-popup {
@@ -67,14 +69,10 @@
                 <div id="controls" class="panel-segment flex-bottom"></div>
             </div>
         </div>
-        <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center" :style="{ opacity: isCursorLocked ? 1 : 1 }">
+        <div class="fixed" :class="(globalThis.isMobile ? 'top-4' : 'bottom-4') + ' left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center'" :style="{ opacity: isCursorLocked ? 1 : 1 }">
             <div class="w-full max-w-xs relative" >
                 <pre id="floating-code" class="floating-code" style="pointer-events: none;" v-html="floatingCode"></pre>
-                <div class="flex justify-center mb-2" v-if="globalThis.isMobile">
-                    <div id="camera-button" class="camera-button" style="width: 60px; height: 60px; background-color: rgba(0, 0, 0, 0.7); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer;" @click="UploadFile()">
-                        <i class="fas fa-camera" style="color: white; font-size: 24px;"></i>
-                    </div>
-                </div>
+              
                 <div class="progress-circle w-6 h-6 mr-2" :class="{ hidden: !isLoading }"></div>
                 <div v-if="variants.length > 0" class="flex justify-center mb-2">
                     <button 
@@ -118,6 +116,9 @@
             <div id="suggestion-bubbles" class="mt-2">
                 <span v-for="suggestion in suggestions" :key="suggestion" class="suggestion-bubble" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" @click="SetSuggestion(suggestion)">{{ suggestion }}</span>
             </div>       
+        </div>
+        <div v-if="globalThis.isMobile" id="camera-button" class="camera-button" style="width: 10%; height: 10%; background-color: rgba(0, 0, 0, 0.7); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);" @click="UploadFile()">
+            <i class="fas fa-camera" style="color: white; font-size: 32px;"></i>
         </div>
         <button id="show-3d-picker" class="fixed top-16 left-4 transform bg-transparent border-none z-50" onclick="picker.openModelPicker()">
             <i class="fas fa-cube" style="font-size: 24px; color: #000;"></i>
