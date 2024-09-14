@@ -302,14 +302,14 @@ let chat = {
 }
 
 globalThis.chat = chat;
-const { data, methods, mounted, watch } = InitVue(chat, { mounted: chat.init, watch: chat.watch });
+let vue = InitVue(chat, { mounted: chat.init, watch: chat.watch });
 
-let vue = chat = new Vue({
+vue = chat = new Vue({
     el: '#app',
-    data,
-    methods,
-    watch,
-    mounted
+    data:vue.data,
+    methods:vue.methods,
+    watch:vue.watch,
+    mounted:vue.mounted
 });
 
 

@@ -42,7 +42,7 @@ class Player extends Character {
         this.jetpackThrust = 10;
         this.jetpackFuel = 100;
         this.jetpackFuelMax = 100;
-        this.jetpackFuelConsumption = 0.1;
+        this.jetpackFuelConsumption = 1.1;
         this.lastJetpackActivation = 0;
         this.jetpackCooldown = 1000;
         this.setupActions();
@@ -58,7 +58,7 @@ class Player extends Character {
     }
 
     updateJetpack(timeStep: number): void {
-        if (this.actions.jetpack.isPressed && Date.now() - this.lastJetpackActivation > this.jetpackCooldown && this.jetpackFuel > 0) {
+        if (this.actions.jetpack.isPressed) {
             this.lastJetpackActivation = Date.now();
             this.jetpackEnabled = true;
         } else {
@@ -67,7 +67,7 @@ class Player extends Character {
 
         if (this.jetpackEnabled) {
             this.jetpackFuel -= this.jetpackFuelConsumption * timeStep;
-            this.velocity.y += this.jetpackThrust * timeStep;
+            this.characterCapsule.body.velocity.y += this.jetpackThrust * timeStep;
         }
 
         if (this.jetpackFuel <= 0) {

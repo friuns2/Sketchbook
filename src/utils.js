@@ -1,4 +1,18 @@
-
+function watch(propAccessor) {
+    let lastValue = propAccessor();
+    
+    function checkForChanges() {
+        const currentValue = propAccessor();
+        if (JSON.stringify(currentValue) !== JSON.stringify(lastValue)) {
+            const oldValue = lastValue;
+            lastValue = currentValue;
+            console.log(propAccessor+' Value changed:', oldValue, '->', currentValue);
+        }
+        requestAnimationFrame(checkForChanges);
+    }
+    
+    checkForChanges();
+}
 
 function InitVue(obj, args = {}) {
     var updatedFromHash;

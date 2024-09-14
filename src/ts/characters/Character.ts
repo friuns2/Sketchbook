@@ -46,7 +46,12 @@ export class Character extends THREE.Object3D implements IWorldEntity
 
 	// Movement
 	public acceleration: THREE.Vector3 = new THREE.Vector3();
-	public velocity: THREE.Vector3 = new THREE.Vector3();
+	/**
+	 * Use characterCapsule.body.velocity to change the velocity directly.
+	 * @readonly
+	 * @type {THREE.Vector3}
+	 */
+	public readonly velocity: THREE.Vector3 = new THREE.Vector3();
 	public arcadeVelocityInfluence: THREE.Vector3 = new THREE.Vector3();
 	public velocityTarget: THREE.Vector3 = new THREE.Vector3();
 	public arcadeVelocityIsAdditive: boolean = false;

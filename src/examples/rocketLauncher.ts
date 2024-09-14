@@ -45,9 +45,9 @@ class Player extends Character {
     }
 
     setupActions(): void {
-        this.actions.interractKey = KeyBinding.CreateKeyBinding("R");
+        this.actions.interractKey = KeyBinding.CreateKeyBinding("KeyR");
         this.actions.aim = KeyBinding.CreateMouseBinding(2);
-        this.actions.dropWeapon = KeyBinding.CreateKeyBinding("V");
+        this.actions.dropWeapon = KeyBinding.CreateKeyBinding("KeyV");
     }
 
     setupCameraSettings(): void {

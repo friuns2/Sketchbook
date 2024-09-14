@@ -1,11 +1,10 @@
 {
     "include": [
-        "**/*",
-        "src/**/*.tsm",
-        "src/ts/vehicles/test.js",
-        "build/types/vehicles/index.js",
-        "src/index.js",
-        "src/examples/codeTemplate.ts"        
+        "src/**/*",
+       
+    ],
+    "exclude": [
+        "src/examples"
     ],
     "compilerOptions": {
         "module": "commonjs",

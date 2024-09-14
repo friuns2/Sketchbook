@@ -6,7 +6,7 @@ export class KeyBinding
 	public justReleased: boolean = false;
 	public static CreateKeyBinding(code: string)
 	{		
-		return new KeyBinding("Key" + code);
+		return new KeyBinding(code);
 	}
 	public static CreateMouseBinding(code: number)
 	{
