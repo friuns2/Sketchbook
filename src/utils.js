@@ -14,12 +14,7 @@ function watch(propAccessor, elementId) {
     update();
 }
 
-function createUIElement(type, style) {
-    const element = document.createElement(type);
-    element.style.cssText = style;
-    document.body.appendChild(element);
-    return element;
-}
+
 
 function InitVue(obj, args = {}) {
     var updatedFromHash;

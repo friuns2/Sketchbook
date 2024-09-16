@@ -107,32 +107,25 @@ function GetSpawnGLBCode(gltf,fileName, intersectionPoint=null, setPivot = false
     
     const modelName = "a"+fileName.split('.').slice(0, -1).join('_').replace(/[^a-zA-Z0-9_]/g, '_').substr(-6);
     let animationsCode = animations && animations.length > 0 ? `
-            gltf.animations.forEach(a => {
-                /* CRITICAL: Uncomment and assign correct CAnims to each animation immediately!
-                ${animations.map((clip, index) => `                    if (a.name === "${clip.name}") a.name = CAnims.`).join('\n')}
+            
+                /* CRITICAL: Uncomment and assign correct animations immediately!
+                ${animations.map((clip, index) => `                    ${modelName}.animationsMapping.??? = "${clip.name}";`).join('\n')}
                 */
-            });
+            
         ` : '';
         
     let code = `    
 /* ${modelName}Model hierarchy:
 ${Object3DToHierarchy(gltf)}
 */
-let ${modelName}Model = await new Promise((resolve, reject) => { 
-    new GLTFLoader().load("${fileName}", 
-        gltf => {
-${animationsCode}
-            
-            resolve(gltf);
-        });
-});
-
+let ${modelName}Model = await new GLTFLoader().loadAsync("${fileName}");
 `;
     if (isSkinnedMesh) code += `
 let ${modelName} = new Character(${modelName}Model);
 //CRITICAL: Uncomment and assign hands immediately! Use ${modelName}Model hierarchy to find the correct bones
 //${modelName}.lhand = 
 //${modelName}.rhand = 
+${animationsCode}
 world.add(${modelName});
 `;
 

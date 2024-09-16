@@ -528,7 +528,7 @@ export class World
 
 		// Scenario
 		this.scenarioGUIFolder = gui.addFolder('Scenarios');
-		this.scenarioGUIFolder.open();
+		
 
 		// World
 		let worldFolder = gui.addFolder('World');

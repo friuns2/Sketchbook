@@ -15,6 +15,7 @@ export declare abstract class Vehicle extends THREE.Object3D implements IWorldEn
         [action: string]: KeyBinding;
     };
     rayCastVehicle: CANNON.RaycastVehicle;
+    private preStep;
     seats: VehicleSeat[];
     wheels: Wheel[];
     drive: string;
@@ -29,6 +30,7 @@ export declare abstract class Vehicle extends THREE.Object3D implements IWorldEn
     constructor(gltf: any, handlingSetup?: any);
     noDirectionPressed(): boolean;
     update(timeStep: number): void;
+    getVehicleAxisWorld(axisIndex: number, result: CANNON.Vec3): void;
     forceCharacterOut(): void;
     onInputChange(): void;
     resetControls(): void;
@@ -44,6 +46,7 @@ export declare abstract class Vehicle extends THREE.Object3D implements IWorldEn
     inputReceiverUpdate(timeStep: number): void;
     setPosition(x: number, y: number, z: number): void;
     setSteeringValue(val: number): void;
+    physicsPreStep(body: CANNON.Body, car: Vehicle): void;
     applyEngineForce(force: number): void;
     setBrake(brakeForce: number, driveFilter?: string): void;
     addToWorld(world: World): void;

@@ -71,10 +71,11 @@ class BaseObject extends THREE.Object3D {
     body;
     
     /**
-     * @param {THREE.Object3D} model - The 3D model to be used for this object.
+     * @param {THREE.Group} model - The 3D model to be used for this object.
      * @param {number} [mass=1] - The mass of the object for physics calculations.
+     * @param {CANNON.Body.Type} [type=CANNON.Body.STATIC] - The type of the physics body.
      */
-    constructor(model, mass = 1, type = CANNON.Body.STATIC) {
+    constructor(model, mass = 1, type = mass > 0 ? CANNON.Body.DYNAMIC : CANNON.Body.STATIC) {
         super();        
         
         const bbox = new THREE.Box3().setFromObject(model);
@@ -116,7 +117,7 @@ class BaseObject extends THREE.Object3D {
     /**
      * Updates the object's position and rotation based on its physics body.
      */
-    update() {
+    update(timeStep) {
         const newPosition = Utils.threeVector(this.body.position);
         const newQuaternion = Utils.threeQuat(this.body.quaternion);
 
@@ -169,6 +170,11 @@ THREE.Object3D.prototype.removeFromParent = function () {
     this.quaternion.copy(worldQuaternion);
 };
 
+/**
+ * Automatically scales a model to a specified size.
+ * @param {THREE.Group} model - The model to be scaled.
+ * @param {number} [approximateSizeInMeters=5] - The approximate size in meters to scale the model to.
+ */
 function AutoScale(model, approximateSizeInMeters = 5) {
     
       // Create a single bounding box for all objects combined
@@ -353,3 +359,9 @@ function initCar(car, carModel, h = 0.45) {
 }
 
 
+function createUIElement(type, style) {
+    const element = document.createElement(type);
+    element.style.cssText = style;
+    document.body.appendChild(element);
+    return element;
+}

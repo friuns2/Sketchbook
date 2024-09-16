@@ -39,7 +39,34 @@ export class Character extends THREE.Object3D implements IWorldEntity
 	public materials: THREE.Material[] = [];
 	public mixer: THREE.AnimationMixer;
 	public animations: AnimationClip[];
-	
+	public animationMapping =  {
+		driving: "driving",
+		drop_idle: "drop_idle",
+		drop_running: "drop_running",
+		drop_running_roll: "drop_running_roll",
+		falling: "falling",
+		idle: "idle",
+		jump_idle: "jump_idle",
+		jump_running: "jump_running",
+		reset: "reset",
+		rotate_left: "rotate_left",
+		rotate_right: "rotate_right",
+		walk: "run",
+		sit_down_left: "sit_down_left",
+		sit_down_right: "sit_down_right",
+		sitting: "sitting",
+		sitting_shift_left: "sitting_shift_left",
+		sitting_shift_right: "sitting_shift_right",
+		run: "sprint",
+		stand_up_left: "stand_up_left",
+		stand_up_right: "stand_up_right",
+		start_back_left: "start_back_left",
+		start_back_right: "start_back_right",
+		start_forward: "start_forward",
+		start_left: "start_left",
+		start_right: "start_right",
+		stop: "stop"
+	};
 	// public currentAnimation: string = "idle";
 	// public previousAnimation: AnimationAction;
 
@@ -485,10 +512,7 @@ export class Character extends THREE.Object3D implements IWorldEntity
 				keys: ['Alt', '+', '→'],
 				desc: 'Redo'
 			},
-			{
-				keys: ['Shift', '+', 'R'],
-				desc: 'Respawn'
-			},
+			
 			{
 				keys: ['Shift', '+', 'C'],
 				desc: 'Free camera'
@@ -512,31 +536,41 @@ export class Character extends THREE.Object3D implements IWorldEntity
 		}
 
 	}
-
-	public setAnimation(clipName: string, fadeIn: number): number
-	{
-		if (this.mixer !== undefined)
-		{
-			// gltf
-			let clip = THREE.AnimationClip.findByName( this.animations, clipName );
-
-			let action = this.mixer.clipAction(clip);
-			if (action === null)
-			{
-				console.warn(`Animation ${clipName} not found!`);
-				return 0;
-			}
-
-			Utils.stopAllAction(this.mixer);
-
-			action.fadeIn(fadeIn);
-			action.play();
-
-
-			
-
-			return action.getClip().duration;
+	
+	public mapAnimation(from: string, to: string): void {
+		const clip = THREE.AnimationClip.findByName(this.animations, from);
+		if (clip) {
+			clip.name = to;
 		}
+	}
+	importantAction: AnimationAction
+	public setAnimation(clipName: string, fadeIn: number, loop: boolean = true, important: boolean = false): number {
+		if (this.importantAction?.isRunning()) return 0;
+
+		let clip = this.animationMapping[clipName] ? THREE.AnimationClip.findByName(this.animations, this.animationMapping[clipName]) : THREE.AnimationClip.findByName(this.animations, clipName);
+
+		let action = this.mixer.clipAction(clip);
+		if (important)
+			this.importantAction = action
+		if (action === null) {
+			console.warn(`Animation ${clipName} not found!`);
+			return 0;
+		}
+
+
+
+		if (!action.isRunning()) {
+			Utils.stopAllAction(this.mixer);
+			action.fadeIn(fadeIn);
+			if (!loop || important) {
+				action.setLoop(THREE.LoopOnce, 1);
+				action.clampWhenFinished = true;
+			}
+			action.play();
+		}
+
+		return action.getClip().duration;
+
 	}
 
 	

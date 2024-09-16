@@ -45,14 +45,9 @@ class Player extends Character {
         super(model);
         this.rhand = model.scene.getObjectByName("rhand");
         this.lhand = model.scene.getObjectByName("lhand");
-        this.remapAnimations(model.animations);
+        
     }
-    remapAnimations(animations) {
-        animations.forEach(a => {
-            if (a.name === "Idle") a.name = CAnims.idle;
-            if (a.name === "Run") a.name = CAnims.run;
-        });
-    }
+  
 }
 ```
 

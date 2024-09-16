@@ -1,6 +1,6 @@
 require.config({
     paths: {
-        vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs',
+        vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.51.0/min/vs',
     }
 });
 
@@ -26,14 +26,22 @@ new Vue({
                 const LoadClass = async (className) => {
 
                     let three = className.includes("node_modules/@types/three/");
-                    if (!className.includes("build/types/") && !three && !className.startsWith("src/") && !className.includes("tween.d.ts") && !className.includes("sweetalert2.d.ts")) return;
+                    if (!className.includes("build/types/") && !three &&
+                     !className.startsWith("src/") &&
+                     //!className.includes("tween.d.ts") && 
+                     !className.includes("sweetalert2.d.ts")) return;
                     const text = await (await fetch(className)).text();
+                    
                     let code = text.replace(/export |import .*?;/gs, "");
                     //code = code.replaceAll("interface","class");
                     //let code = text.match(/export (?:declare )?(class [\s\S]*)/)?.[1] || text;
                     // if(className.includes("GLTFLoader"))debugger;
                     if (three && !className.includes("examples"))
                         code = "declare namespace THREE {" + code + "} "
+
+                    if(className.includes("FunctionLibrary"))
+                        code = "declare namespace Utils {" + code + "} "
+
                     await monaco.languages.typescript.typescriptDefaults.addExtraLib(code, `file:///${className}`);
                 };
 
@@ -72,5 +80,5 @@ new Vue({
 });
 
 function SetCode(code) {
-    codeEditor.setValue("export {};\n" + code.replace(/export |import .*?;/gs, ""));
+    codeEditor.setValue("export {};\n" + code.replaceAll("export {};\n","").replace(/import .*?;/gs, ""));
 }

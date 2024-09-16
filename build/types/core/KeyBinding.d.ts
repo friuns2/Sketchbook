@@ -3,7 +3,8 @@ export declare class KeyBinding {
     isPressed: boolean;
     justPressed: boolean;
     justReleased: boolean;
-    static CreateKeyBinding(code: string): KeyBinding;
-    static CreateMouseBinding(code: number): KeyBinding;
-    constructor(...code: string[]);
+    description: string;
+    static CreateKeyBinding(code: string, description?: string): KeyBinding;
+    static CreateMouseBinding(code: number, description?: string): KeyBinding;
+    constructor(code: string, description?: string);
 }

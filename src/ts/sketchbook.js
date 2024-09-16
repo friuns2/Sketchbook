@@ -75,9 +75,6 @@ globalThis.VectorSpringSimulator = VectorSpringSimulator;
 
 
 
-
-import { CAnims } from './enums/CharacterAnimations';
-globalThis.CAnims = CAnims;
 globalThis.CarPrototype = Car.prototype
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 globalThis.SkeletonUtils = SkeletonUtils;

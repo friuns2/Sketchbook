@@ -154,7 +154,7 @@ let chat = {
                 'build/types/core/CameraOperator.d.ts',
                 'build/types/vehicles/Car.d.ts',
                 'build/types/core/KeyBinding.d.ts',
-                'src/ts/enums/CharacterAnimations.ts',                
+                //'src/ts/enums/CharacterAnimations.ts',                
                 'src/ts/characters/character_ai/FollowTarget.ts',
                 'src/ts/characters/character_ai/RandomBehaviour.ts',
              //   'node_modules/three/src/core/Object3D.d.ts',
@@ -173,7 +173,7 @@ let chat = {
                     alert("Error fetching file: " + e + " " + path);
                     return '';
                 }).then(content => { 
-                    if (path.includes("example") && (path.includes(".js") || path.includes(".ts")))
+                    if (path.includes("example") && !path.includes("helpers.js") && (path.includes(".js") || path.includes(".ts")))
                         content = content.split('\n').map(line => `// ${line}`).join('\n');
                     //  content = `/* ${content} */`; 
                     content = content.replace(/^.*\bprivate\b.*$/gm, '');
@@ -254,19 +254,16 @@ let chat = {
         this.currentVariant = index;
         let variant = this.variants[this.currentVariant];
         let content = variant.content;
-        let data = parseFilesFromMessage(content);
-        if(data.files.length>0)
+        if (!variant.files.length) {
+            let data = parseFilesFromMessage(content);
             variant.files = data.files.map(file => new VariantFile(file.name, file.content));
-        this.floatingCode = content;    
-        
-        
-            
-        if(variant.files.length > 0){
-            var code = variant.files[0].content;
-            ResetState();
-            await new Promise(resolve => setTimeout(resolve, 100));
-            await Eval(code);            
         }
+        this.floatingCode = content;
+
+        const code = variant.files[0].content;
+        ResetState();
+        await new Promise(resolve => setTimeout(resolve, 100));
+        await Eval(code);
     },
 
     // Add these new methods

@@ -27,12 +27,6 @@ class MinecraftPlayer extends Character {
         this.lastCubePosition = null;
     }
 
-    remapAnimations(animations: THREE.AnimationClip[]): void {
-        animations.forEach(a => {
-            if (a.name === "Idle") a.name = CAnims.idle;
-            if (a.name === "Run") a.name = CAnims.run;
-        });
-    }
 
     handleMouseButton(event: MouseEvent, code: string, pressed: boolean): void {
         super.handleMouseButton(event, code, pressed);

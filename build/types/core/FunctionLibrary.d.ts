@@ -4,7 +4,7 @@ import { SimulationFrame } from '../physics/spring_simulation/SimulationFrame';
 import { Side } from '../enums/Side';
 import { Object3D } from 'three';
 import { Space } from '../enums/Space';
-export declare function createCapsuleGeometry(radius?: number, height?: number, N?: number): THREE.Geometry;
+export declare function createCapsuleGeometry(radius?: number, height?: number, N?: number): THREE.BufferGeometry;
 /**
  * Constructs a 2D matrix from first vector, replacing the Y axes with the global Y axis,
  * and applies this matrix to the second vector. Saves performance when compared to full 3D matrix application.
@@ -45,3 +45,6 @@ export declare function getForward(obj: THREE.Object3D, space?: Space): THREE.Ve
 export declare function getBack(obj: THREE.Object3D, space?: Space): THREE.Vector3;
 export declare function getMatrix(obj: THREE.Object3D, space: Space): THREE.Matrix4;
 export declare function countSleepyBodies(): any;
+export declare function stopAllAction(mixer: any): THREE.AnimationMixer;
+export declare function getActions(mixer: any): any[];
+export declare function isActive(mixer: any): boolean;

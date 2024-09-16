@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 import * as CANNON from 'cannon-es';
+import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 import { KeyBinding } from '../core/KeyBinding';
 import { VectorSpringSimulator } from '../physics/spring_simulation/VectorSpringSimulator';
 import { RelativeSpringSimulator } from '../physics/spring_simulation/RelativeSpringSimulator';
@@ -14,6 +14,7 @@ import { Vehicle } from '../vehicles/Vehicle';
 import { CapsuleCollider } from '../physics/colliders/CapsuleCollider';
 import { VehicleEntryInstance } from './VehicleEntryInstance';
 import { GroundImpactData } from './GroundImpactData';
+import { AnimationClip } from 'three';
 import { EntityType } from '../enums/EntityType';
 export declare class Character extends THREE.Object3D implements IWorldEntity {
     updateOrder: number;
@@ -23,10 +24,42 @@ export declare class Character extends THREE.Object3D implements IWorldEntity {
     modelContainer: THREE.Group;
     materials: THREE.Material[];
     mixer: THREE.AnimationMixer;
-    animations: any[];
-    actions: { [action: string]: KeyBinding };
+    animations: AnimationClip[];
+    animationMapping: {
+        driving: string;
+        drop_idle: string;
+        drop_running: string;
+        drop_running_roll: string;
+        falling: string;
+        idle: string;
+        jump_idle: string;
+        jump_running: string;
+        reset: string;
+        rotate_left: string;
+        rotate_right: string;
+        walk: string;
+        sit_down_left: string;
+        sit_down_right: string;
+        sitting: string;
+        sitting_shift_left: string;
+        sitting_shift_right: string;
+        run: string;
+        stand_up_left: string;
+        stand_up_right: string;
+        start_back_left: string;
+        start_back_right: string;
+        start_forward: string;
+        start_left: string;
+        start_right: string;
+        stop: string;
+    };
     acceleration: THREE.Vector3;
-    velocity: THREE.Vector3;
+    /**
+     * Use characterCapsule.body.velocity to change the velocity directly.
+     * @readonly
+     * @type {THREE.Vector3}
+     */
+    readonly velocity: THREE.Vector3;
     arcadeVelocityInfluence: THREE.Vector3;
     velocityTarget: THREE.Vector3;
     arcadeVelocityIsAdditive: boolean;
@@ -41,6 +74,9 @@ export declare class Character extends THREE.Object3D implements IWorldEntity {
     defaultRotationSimulatorMass: number;
     rotationSimulator: RelativeSpringSimulator;
     viewVector: THREE.Vector3;
+    actions: {
+        [key: string]: KeyBinding;
+    };
     characterCapsule: CapsuleCollider;
     rayResult: CANNON.RaycastResult;
     rayHasHit: boolean;
@@ -56,10 +92,11 @@ export declare class Character extends THREE.Object3D implements IWorldEntity {
     controlledObject: IControllable;
     occupyingSeat: VehicleSeat;
     vehicleEntryInstance: VehicleEntryInstance;
-    gltf: any;
     private physicsEnabled;
+    private preStep;
+    private postStep;
     constructor(gltf: GLTF);
-    setAnimations(animations: THREE.AnimationClip[]): void;
+    setAnimations(animations: AnimationClip[]): void;
     setArcadeVelocityInfluence(x: number, y?: number, z?: number): void;
     setViewVector(vector: THREE.Vector3): void;
     /**
@@ -86,7 +123,8 @@ export declare class Character extends THREE.Object3D implements IWorldEntity {
     inputReceiverInit(): void;
     displayControls(): void;
     inputReceiverUpdate(timeStep: number): void;
-    setAnimation(clipName: string, fadeIn: number): number;
+    mapAnimation(from: string, to: string): void;
+    setAnimation(clipName: string, fadeIn: number, loop?: boolean): number;
     springMovement(timeStep: number): void;
     springRotation(timeStep: number): void;
     getLocalMovementDirection(): THREE.Vector3;
