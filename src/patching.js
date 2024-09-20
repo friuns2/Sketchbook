@@ -40,10 +40,6 @@ class GLTFMaterialsPbrSpecularGlossinessExtension {
         this.name = 'KHR_materials_pbrSpecularGlossiness';
     }
 
-    getMaterialType(materialIndex) {
-        return THREE.MeshStandardMaterial;
-    }
-
     extendMaterialParams(materialIndex, materialParams) {
         const parser = this.parser;
         const materialDef = parser.json.materials[materialIndex];

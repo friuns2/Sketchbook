@@ -19,60 +19,7 @@ class Player extends Character {
 
 //#region Cow Class
 class Cow extends Character {
-    grassEaten: number = 0;
-    grassEatingDuration: number = 2000; // 2 seconds
-    lastGrassEatTime: number = 0;
-    grassEatingRange: number = 2; // Distance to grass for eating
 
-    constructor(model: GLTF) {
-        super(model);
-        this.setupAnimations();
-    }
-
-    setupAnimations(): void {
-        this.animationsMapping.idle = "Idle";
-        this.animationsMapping.eating = "Eating";
-    }
-
-    update(timeStep: number): void {
-        super.update(timeStep);
-        this.checkAndEatGrass(timeStep);
-    }
-
-    checkAndEatGrass(timeStep: number): void {
-        const closestGrass = this.findClosestGrass();
-        if (closestGrass) {
-            const distanceToGrass = this.position.distanceTo(closestGrass.position);
-            if (distanceToGrass < this.grassEatingRange && Date.now() - this.lastGrassEatTime > this.grassEatingDuration) {
-                this.lastGrassEatTime = Date.now();
-                this.eatGrass(closestGrass);
-            }
-        }
-    }
-
-    findClosestGrass(): THREE.Object3D | null {
-        let closestGrass: THREE.Object3D | null = null;
-        let closestDistance = Infinity;
-        world.graphicsWorld.children.forEach(child => {
-            if (child instanceof THREE.Mesh && child.name === "grass") {
-                const distance = this.position.distanceTo(child.position);
-                if (distance < closestDistance) {
-                    closestDistance = distance;
-                    closestGrass = child;
-                }
-            }
-        });
-        return closestGrass;
-    }
-
-    eatGrass(grass: THREE.Object3D): void {
-        this.grassEaten++;
-        this.setAnimation("eating", 0, false);
-        this.mixer.addEventListener('finished', () => {
-            this.setAnimation("idle", 0);
-            world.remove(grass); // Remove the eaten grass
-        });
-    }
 }
 //#endregion
 
@@ -91,41 +38,20 @@ async function main() {
     addMethodListener(world, world.update, () => {
         TWEEN.update();
     });
-
     const player = new Player(playerModel);
     expose(player.moveSpeed, "player speed");
     player.setPosition(0, 0, -5);
     world.add(player);
-
     player.takeControl();
 
-    // Add grass
-    const grassModel = await loadAsync('build/assets/grass.glb'); // Replace with the actual path to your grass model
-    AutoScale(grassModel.scene, 1); // Adjust the scale as needed
-
-    // Create multiple instances of the grass model
-    for (let i = 0; i < 10; i++) { // Adjust the number of instances
-        const grassInstance = grassModel.scene.clone();
-        grassInstance.position.set(
-            Math.random() * 10 - 5, // Adjust the range for random X positions
-            0, // Adjust the Y position for the grass height
-            Math.random() * 10 - 5 // Adjust the range for random Z positions
-        );
-        grassInstance.name = "grass"; // Set the name for easy identification
-        world.add(grassInstance);
-    }
-
-    // Add cows
-    const cowModel = await loadAsync('build/assets/cow.glb'); // Replace with the actual path to your cow model
-    AutoScale(cowModel.scene, 1); // Adjust the scale as needed
-
-    for (let i = 0; i < 3; i++) { // Adjust the number of cows
-        const cowInstance = new Cow(cowModel);
-        cowInstance.setPosition(
-            Math.random() * 10 - 5, // Adjust the range for random X positions
-            0, // Adjust the Y position for the cow height
-            Math.random() * 10 - 5 // Adjust the range for random Z positions
-        );
+    const cowModel = await loadAsync('build/assets/cow.glb');
+    AutoScale(cowModel.scene, 1);
+    
+    for (let i = 0; i < 3; i++) {
+        let cow =  Utils.cloneGltf(cowModel);
+        expose(cow.scene, "cow");    
+        const cowInstance = new Cow(cow);
+        cowInstance.setPosition(Math.random() * 10 - 5, 0, Math.random() * 10 - 5);
         world.add(cowInstance);
     }
 }

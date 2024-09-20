@@ -136,7 +136,7 @@ export class Character extends THREE.Object3D implements IWorldEntity
 	{
 		super();
 		
-		gltf = Utils.cloneGltf(gltf);
+		//gltf = Utils.cloneGltf(gltf);
 		this.readCharacterData(gltf);
 		
 		this.mixer = new THREE.AnimationMixer(gltf.scene);

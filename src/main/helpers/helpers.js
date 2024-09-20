@@ -1,3 +1,5 @@
+var Utils = Utils || {};
+
 
 function addMethodListener(object, methodName, extension) {
     methodName = methodName.name?.replaceAll("bound ", "") ?? methodName;
@@ -207,7 +209,6 @@ function AutoScale(model, approximateSizeInMeters = 5) {
 }
 
 function expose(obj, name = obj.name) {
-
     requestAnimationFrame(() => {
         try {
             const folder = world.gui.addFolder(name);
@@ -235,7 +236,7 @@ function expose(obj, name = obj.name) {
             console.log(e);
         }
     });
-
+    return obj;
         
     
 }

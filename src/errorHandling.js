@@ -20,6 +20,7 @@ async function Eval(content)
         .replace(/^.*(?:world\.initialize).*$\n?/gm, '\n')
         .replace(/world\.render\(world\);/g, '\n')
         .replace(/\b(let|const)\s+(\w+)\s*=/g, 'var $2 = globalThis.$2 =')       
+        .replaceAll("instanceof THREE.Mesh ", "instanceof THREE.Group ")
         
             
     

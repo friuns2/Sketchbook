@@ -1,903 +1,105 @@
-
-<html>
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <base href="https://websim.ai/" />
-    <meta charset="utf-8" />
-    <title>Realistic Off-Road Truck Simulator with Adjustable Settings</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two Boxes with dat.gui</title>
     <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-        }
-
-        canvas {
-            display: block;
-        }
-
-        #instructions {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            color: white;
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            border-radius: 5px;
-            font-family: Arial, sans-serif;
-            z-index: 2;
-        }
-
-        #gui-container {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 3;
-        }
-
-        #reset-button,
-        #reset-truck-button {
-            position: absolute;
-            bottom: 10px;
-            z-index: 4;
-            padding: 10px 20px;
-            font-size: 16px;
-            font-family: Arial, sans-serif;
-            background-color: #ff5555;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            opacity: 0.8;
-        }
-
-        #reset-button {
-            right: 10px;
-        }
-
-        #reset-truck-button {
-            right: 160px;
-        }
-
-        #reset-button:hover,
-        #reset-truck-button:hover {
-            opacity: 1;
-        }
+        body { margin: 0; }
+        canvas { display: block; }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
 </head>
-
 <body>
-    <div id="instructions">
-        Use Arrow keys or WASD to control the off-road truck<br />
-      W/Up: Accelerate, S/Down: Brake/Reverse<br />
-      A/Left: Turn Left, D/Right: Turn Right
-    </div>
-    <div id="gui-container"></div>
-    <button id="reset-button">Reset Settings</button>
-    <button id="reset-truck-button">Reset Truck</button>
-    <script type="importmap">
-        {
-        "imports": {
-          "three": "https://unpkg.com/three@0.168.0/build/three.module.js",
-          "three/addons/": "https://unpkg.com/three@0.168.0/examples/jsm/",
-          "cannon-es": "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js",
-          "cannon-es-debugger": "https://unpkg.com/cannon-es-debugger@1.0.0/dist/cannon-es-debugger.js",
-          "dat.gui": "https://unpkg.com/dat.gui@0.7.7/build/dat.gui.module.js"
-        }
-      }
-    </script>
-    <script type="module">
-        import * as dat from "dat.gui";
-      import * as THREE from "three";
-      import * as CANNON from "cannon-es";
-      import CannonDebugger from "cannon-es-debugger";
-
-      // Default Settings
-      const defaultSettings = {
-        debug: false,
-        gravity: -9.82,
-
-        // Truck settings
-        chassisWidth: 3,
-        chassisHeight: 1,
-        chassisLength: 7,
-        chassisMass: 1500,
-
-        wheelRadius: 1.25,
-        wheelWidth: 1,
-
-        suspensionStiffness: 5,
-        suspensionRestLength: 1.5,
-
-        maxSteerVal: 0.6,
-        maxForce: 2000,
-
-        cameraDistance: 20,
-        cameraHeight: 10,
-
-        // Axle settings
-        axleWidth: 2.0,
-        frontAxlePosition: 3.0,
-        rearAxlePosition: -3.0,
-      };
-
-      // Load settings from localStorage or use default if invalid
-      let settings;
-      try {
-        const storedSettings = JSON.parse(
-          localStorage.getItem("truckSettings")
-        );
-        if (storedSettings && typeof storedSettings === "object") {
-          settings = { ...defaultSettings, ...storedSettings };
-        } else {
-          settings = { ...defaultSettings };
-        }
-      } catch (e) {
-        settings = { ...defaultSettings };
-      }
-
-      // Save settings to localStorage
-      function saveSettings() {
-        localStorage.setItem("truckSettings", JSON.stringify(settings));
-      }
-
-      // Initialize variables
-      const debugMeshes = [];
-
-      // Create a Three.js scene
-      const scene = new THREE.Scene();
-      const loader = new THREE.CubeTextureLoader();
-      const skyboxTexture = loader.load([
-        "textures/skybox/px.jpg",
-        "textures/skybox/nx.jpg",
-        "textures/skybox/py.jpg",
-        "textures/skybox/ny.jpg",
-        "textures/skybox/pz.jpg",
-        "textures/skybox/nz.jpg",
-      ]);
-      scene.background = skyboxTexture;
-
-      const camera = new THREE.PerspectiveCamera(
-        60,
-        window.innerWidth / window.innerHeight,
-        0.1,
-        1000
-      );
-
-      const renderer = new THREE.WebGLRenderer({ antialias: true });
-      renderer.physicallyCorrectLights = true;
-      renderer.outputEncoding = THREE.sRGBEncoding;
-      renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.0;
-      renderer.shadowMap.enabled = true;
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      document.body.appendChild(renderer.domElement);
-
-      // Lights
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-      scene.add(ambientLight);
-
-      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
-      hemiLight.position.set(0, 50, 0);
-      scene.add(hemiLight);
-
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
-      directionalLight.position.set(20, 50, -10);
-      directionalLight.castShadow = true;
-      directionalLight.shadow.mapSize.width = 4096;
-      directionalLight.shadow.mapSize.height = 4096;
-      directionalLight.shadow.camera.left = -100;
-      directionalLight.shadow.camera.right = 100;
-      directionalLight.shadow.camera.top = 100;
-      directionalLight.shadow.camera.bottom = -100;
-      directionalLight.shadow.camera.near = 0.5;
-      directionalLight.shadow.camera.far = 500;
-      scene.add(directionalLight);
-
-      // Physics World
-      const world = new CANNON.World();
-      world.broadphase = new CANNON.NaiveBroadphase();
-      world.gravity.set(0, settings.gravity, 0);
-      world.solver.iterations = 10;
-
-      const cannonDebugger = new CannonDebugger(scene, world, {
-        onInit(body, mesh) {
-          debugMeshes.push(mesh);
-          mesh.visible = settings.debug;
-        },
-      });
-
-      // Materials
-      const groundMaterial = new CANNON.Material("groundMaterial");
-      const wheelMaterial = new CANNON.Material("wheelMaterial");
-      const chassisMaterial = new CANNON.Material("chassisMaterial");
-
-      const wheelGroundContactMaterial = new CANNON.ContactMaterial(
-        wheelMaterial,
-        groundMaterial,
-        { friction: 0.9, restitution: 0, contactEquationStiffness: 1000 }
-      );
-      world.addContactMaterial(wheelGroundContactMaterial);
-
-      // Ground Body and Mesh
-      const groundBody = new CANNON.Body({ mass: 0, material: groundMaterial });
-      const groundShape = new CANNON.Plane();
-      groundBody.addShape(groundShape);
-      groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
-      world.addBody(groundBody);
-
-      const groundGeometry = new THREE.PlaneGeometry(500, 500, 50, 50);
-      groundGeometry.rotateX(-Math.PI / 2);
-      const groundMaterialMesh = new THREE.MeshStandardMaterial({
-        color: 0x337733,
-        roughness: 0.9,
-        metalness: 0.1,
-      });
-      const groundMesh = new THREE.Mesh(groundGeometry, groundMaterialMesh);
-      groundMesh.receiveShadow = true;
-      scene.add(groundMesh);
-
-      // Rocks (Spheres)
-      for (let i = 0; i < 150; i++) {
-        let isBig = Math.random() < 0.33;
-        let radius;
-        if (isBig) {
-          radius = (Math.random() * 2 + 1) * 3;
-        } else {
-          radius = Math.random() * 2 + 1;
-        }
-        let posX = Math.random() * 100 - 50;
-        let posZ = Math.random() * 100 - 50;
-        let posY = -(2 / 3) * radius;
-
-        const sphereBody = new CANNON.Body({
-          mass: 0,
-          material: groundMaterial,
-        });
-        const sphereShape = new CANNON.Sphere(radius);
-        sphereBody.addShape(sphereShape);
-        sphereBody.position.set(posX, posY, posZ);
-        world.addBody(sphereBody);
-
-        const sphereGeometry = new THREE.SphereGeometry(
-          radius,
-          32,
-          16,
-          0,
-          Math.PI * 2,
-          0,
-          Math.PI / 3
-        );
-        const sphereMaterialMesh = new THREE.MeshStandardMaterial({
-          color: 0x555555,
-          roughness: 0.8,
-          metalness: 0.2,
-        });
-        const sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterialMesh);
-        sphereMesh.position.set(posX, posY, posZ);
-        sphereMesh.castShadow = true;
-        sphereMesh.receiveShadow = true;
-        scene.add(sphereMesh);
-      }
-
-      // Compute default axle settings based on initial chassis dimensions
-      if (settings.axleWidth === defaultSettings.axleWidth) {
-        settings.axleWidth =
-          settings.chassisWidth / 2 + settings.wheelWidth / 2;
-      }
-      if (settings.frontAxlePosition === defaultSettings.frontAxlePosition) {
-        settings.frontAxlePosition =
-          settings.chassisLength / 2 - settings.wheelRadius;
-      }
-      if (settings.rearAxlePosition === defaultSettings.rearAxlePosition) {
-        settings.rearAxlePosition =
-          -settings.chassisLength / 2 + settings.wheelRadius;
-      }
-
-      // Create GUI
-      const gui = new dat.GUI({ autoPlace: false });
-      document.getElementById("gui-container").appendChild(gui.domElement);
-
-      // Reset Settings Button
-      document.getElementById("reset-button").addEventListener("click", () => {
-        // Reset settings to default
-        Object.assign(settings, defaultSettings);
-        saveSettings();
-
-        // Update GUI controllers
-        gui.__controllers.forEach((controller) => controller.updateDisplay());
-        for (let folderName in gui.__folders) {
-          gui.__folders[folderName].__controllers.forEach((controller) =>
-            controller.updateDisplay()
-          );
-        }
-
-        // Update vehicle in place
-        updateVehicleInPlace();
-      });
-
-      // Reset Truck Button
-      document
-        .getElementById("reset-truck-button")
-        .addEventListener("click", () => {
-          resetTruck();
-        });
-
-      gui
-        .add(settings, "debug")
-        .name("Debug")
-        .onChange((value) => {
-          debugMeshes.forEach((mesh) => {
-            mesh.visible = value;
-          });
-          saveSettings();
-        });
-
-      gui
-        .add(settings, "gravity", -100, 100, 0.1)
-        .name("Gravity")
-        .onChange((value) => {
-          world.gravity.set(0, value, 0);
-          saveSettings();
-        });
-
-      const chassisFolder = gui.addFolder("chassis");
-      chassisFolder
-        .add(settings, "chassisWidth", 1, 5, 0.1)
-        .name("Width")
-        .onChange(() => {
-          updateVehicleInPlace();
-          saveSettings();
-        });
-      chassisFolder
-        .add(settings, "chassisHeight", 0.5, 3, 0.1)
-        .name("Height")
-        .onChange(() => {
-          updateVehicleInPlace();
-          saveSettings();
-        });
-      chassisFolder
-        .add(settings, "chassisLength", 3, 10, 0.1)
-        .name("Length")
-        .onChange(() => {
-          updateVehicleInPlace();
-          saveSettings();
-        });
-      chassisFolder
-        .add(settings, "chassisMass", 500, 5000, 100)
-        .name("Mass")
-        .onChange(() => {
-          updateVehicleInPlace();
-          saveSettings();
-        });
-      const wheelFolder = gui.addFolder("wheels");
-      wheelFolder
-        .add(settings, "wheelRadius", 0.5, 3, 0.1)
-        .name("Radius")
-        .onChange(() => {
-          updateVehicleInPlace();
-          saveSettings();
-        });
-      wheelFolder
-        .add(settings, "wheelWidth", 0.5, 2, 0.1)
-        .name("Width")
-        .onChange(() => {
-          updateVehicleInPlace();
-          saveSettings();
-        });
-      const suspensionFolder = gui.addFolder("suspension");
-      suspensionFolder
-        .add(settings, "suspensionStiffness", 5, 50, 1)
-        .name("Stiffness")
-        .onChange(() => {
-          updateVehicleInPlace();
-          saveSettings();
-        });
-      suspensionFolder
-        .add(settings, "suspensionRestLength", 0.5, 5, 0.1)
-        .name("Rest Length")
-        .onChange(() => {
-          updateVehicleInPlace();
-          saveSettings();
-        });
-      const controlsFolder = gui.addFolder("controls");
-      controlsFolder
-        .add(settings, "maxSteerVal", 0, 1, 0.1)
-        .name("Max Steering")
-        .onChange(() => {
-          saveSettings();
-        });
-      controlsFolder
-        .add(settings, "maxForce", 500, 5000, 100)
-        .name("Max Force")
-        .onChange(() => {
-          saveSettings();
-        });
-
-      const axleFolder = gui.addFolder("axles");
-      axleFolder
-        .add(settings, "axleWidth", 1, 5, 0.1)
-        .name("Axle Width")
-        .onChange(() => {
-          updateVehicleInPlace();
-          saveSettings();
-        });
-      axleFolder
-        .add(settings, "frontAxlePosition", -5, 5, 0.1)
-        .name("Front Axle Pos")
-        .onChange(() => {
-          updateVehicleInPlace();
-          saveSettings();
-        });
-      axleFolder
-        .add(settings, "rearAxlePosition", -5, 5, 0.1)
-        .name("Rear Axle Pos")
-        .onChange(() => {
-          updateVehicleInPlace();
-          saveSettings();
-        });
-
-      const cameraFolder = gui.addFolder("camera");
-      cameraFolder
-        .add(settings, "cameraDistance", 5, 50, 1)
-        .name("Distance")
-        .onChange(() => {
-          saveSettings();
-        });
-      cameraFolder
-        .add(settings, "cameraHeight", 2, 20, 1)
-        .name("Height")
-        .onChange(() => {
-          saveSettings();
-        });
-
-      // Initialize Vehicle
-      let chassisBody, chassisMesh, vehicle, wheelMeshes;
-
-      function createVehicle() {
-        // Chassis Body and Mesh
-        const chassisShape = new CANNON.Box(
-          new CANNON.Vec3(
-            settings.chassisWidth / 2,
-            settings.chassisHeight / 2,
-            settings.chassisLength / 2
-          )
-        );
-        chassisBody = new CANNON.Body({
-          mass: settings.chassisMass,
-          material: chassisMaterial,
-        });
-        chassisBody.addShape(chassisShape);
-        chassisBody.position.set(0, 5, 0);
-        chassisBody.angularDamping = 0.5;
-        world.addBody(chassisBody);
-
-        // Chassis Mesh (Truck Body)
-        const chassisMaterialMesh = new THREE.MeshStandardMaterial({
-          color: 0xff0000,
-          roughness: 0.5,
-          metalness: 0.5,
-        });
-        chassisMesh = new THREE.Mesh(
-          new THREE.BoxGeometry(
-            settings.chassisWidth,
-            settings.chassisHeight,
-            settings.chassisLength
-          ),
-          chassisMaterialMesh
-        );
-        chassisMesh.castShadow = true;
-        scene.add(chassisMesh);
-
-        // Cab Mesh
-        const cabGeometry = new THREE.BoxGeometry(
-          settings.chassisWidth,
-          settings.chassisHeight * 2,
-          settings.chassisLength / 3
-        );
-        const cabMaterialMesh = new THREE.MeshStandardMaterial({
-          color: 0xff0000,
-          roughness: 0.5,
-          metalness: 0.5,
-        });
-        const cabMesh = new THREE.Mesh(cabGeometry, cabMaterialMesh);
-        cabMesh.position.set(
-          0,
-          settings.chassisHeight * 0.75,
-          settings.chassisLength / 2 - settings.chassisLength / 3
-        );
-        cabMesh.castShadow = true;
-        chassisMesh.add(cabMesh);
-
-        // Windshield
-        const windshieldGeometry = new THREE.PlaneGeometry(
-          settings.chassisWidth,
-          settings.chassisHeight * 1.5
-        );
-        const windshieldMaterial = new THREE.MeshStandardMaterial({
-          color: 0x88ccff,
-          roughness: 0.1,
-          metalness: 0.0,
-          transparent: true,
-          opacity: 0.5,
-        });
-        const windshieldMesh = new THREE.Mesh(
-          windshieldGeometry,
-          windshieldMaterial
-        );
-        windshieldMesh.position.set(
-          0,
-          settings.chassisHeight * 0.75,
-          settings.chassisLength / 2 - settings.chassisLength / 3 / 2
-        );
-        windshieldMesh.rotation.x = -Math.PI / 12;
-        cabMesh.add(windshieldMesh);
-
-        // Headlights
-        const lightGeometry = new THREE.BoxGeometry(0.4, 0.2, 0.2);
-        const lightMaterial = new THREE.MeshStandardMaterial({
-          color: 0xffff00,
-        });
-        for (let i = -1; i <= 1; i += 2) {
-          const lightMesh = new THREE.Mesh(lightGeometry, lightMaterial);
-          lightMesh.position.set(
-            i * (settings.chassisWidth / 4),
-            settings.chassisHeight * 1.6,
-            settings.chassisLength / 2 - settings.chassisLength / 3
-          );
-          cabMesh.add(lightMesh);
-        }
-
-        // Vehicle and Wheels
-        vehicle = new CANNON.RaycastVehicle({
-          chassisBody: chassisBody,
-          indexRightAxis: 0,
-          indexUpAxis: 1,
-          indexForwardAxis: 2,
-        });
-
-        const wheelOptions = {
-          radius: settings.wheelRadius,
-          directionLocal: new CANNON.Vec3(0, -1, 0),
-          suspensionStiffness: settings.suspensionStiffness,
-          suspensionRestLength: settings.suspensionRestLength,
-          frictionSlip: 5,
-          dampingRelaxation: 4,
-          dampingCompression: 4,
-          maxSuspensionForce: 100000,
-          rollInfluence: 0.01,
-          axleLocal: new CANNON.Vec3(-1, 0, 0),
-          chassisConnectionPointLocal: new CANNON.Vec3(),
-          maxSuspensionTravel: 3.0,
-          customSlidingRotationalSpeed: -30,
-          useCustomSlidingRotationalSpeed: true,
-        };
-
-        // Front Left Wheel
-        wheelOptions.chassisConnectionPointLocal.set(
-          settings.axleWidth,
-          0,
-          settings.frontAxlePosition
-        );
-        vehicle.addWheel(wheelOptions);
-
-        // Front Right Wheel
-        wheelOptions.chassisConnectionPointLocal.set(
-          -settings.axleWidth,
-          0,
-          settings.frontAxlePosition
-        );
-        vehicle.addWheel(wheelOptions);
-
-        // Rear Left Wheel
-        wheelOptions.chassisConnectionPointLocal.set(
-          settings.axleWidth,
-          0,
-          settings.rearAxlePosition
-        );
-        vehicle.addWheel(wheelOptions);
-
-        // Rear Right Wheel
-        wheelOptions.chassisConnectionPointLocal.set(
-          -settings.axleWidth,
-          0,
-          settings.rearAxlePosition
-        );
-        vehicle.addWheel(wheelOptions);
-
-        vehicle.addToWorld(world);
-
-        wheelMeshes = [];
-        vehicle.wheelInfos.forEach((wheel) => {
-          const wheelGeometry = new THREE.CylinderGeometry(
-            wheel.radius,
-            wheel.radius,
-            settings.wheelWidth,
-            32
-          );
-          wheelGeometry.rotateZ(Math.PI / 2);
-          const wheelMaterialMesh = new THREE.MeshStandardMaterial({
-            color: 0x222222,
-            roughness: 0.8,
-            metalness: 0.2,
-          });
-          const wheelMesh = new THREE.Mesh(wheelGeometry, wheelMaterialMesh);
-          wheelMesh.castShadow = true;
-
-          // Treads
-          const treadMaterial = new THREE.MeshStandardMaterial({
-            color: 0x111111,
-            roughness: 0.9,
-            metalness: 0.1,
-          });
-          const treadGeometry = new THREE.BoxGeometry(
-            0.1,
-            settings.wheelWidth,
-            ((wheel.radius * 2 * Math.PI) / 20) * 0.7
-          );
-          const treads = new THREE.Group();
-          for (let i = 0; i < 20; i++) {
-            const tread = new THREE.Mesh(treadGeometry, treadMaterial);
-            const angle = (i / 20) * Math.PI * 2;
-            tread.position.y = wheel.radius * Math.cos(angle);
-            tread.position.z = wheel.radius * Math.sin(angle);
-            tread.rotation.x = angle;
-            tread.rotation.z = Math.PI / 2;
-            treads.add(tread);
-          }
-          wheelMesh.add(treads);
-
-          scene.add(wheelMesh);
-          wheelMeshes.push(wheelMesh);
-        });
-      }
-
-      function updateVehicleInPlace() {
-        // Update chassis mass
-        chassisBody.mass = settings.chassisMass;
-        chassisBody.updateMassProperties();
-
-        // Update chassis shape
-        const newChassisShape = new CANNON.Box(
-          new CANNON.Vec3(
-            settings.chassisWidth / 2,
-            settings.chassisHeight / 2,
-            settings.chassisLength / 2
-          )
-        );
-        chassisBody.shapes = [];
-        chassisBody.addShape(newChassisShape);
-
-        // Update chassis mesh geometry
-        chassisMesh.geometry.dispose();
-        chassisMesh.geometry = new THREE.BoxGeometry(
-          settings.chassisWidth,
-          settings.chassisHeight,
-          settings.chassisLength
-        );
-
-        // Update cab position and geometry
-        const cabMesh = chassisMesh.children.find(
-          (child) =>
-            child.geometry.type === "BoxGeometry" &&
-            child.geometry.parameters.height === settings.chassisHeight * 2
-        );
-        if (cabMesh) {
-          cabMesh.geometry.dispose();
-          cabMesh.geometry = new THREE.BoxGeometry(
-            settings.chassisWidth,
-            settings.chassisHeight * 2,
-            settings.chassisLength / 3
-          );
-          cabMesh.position.set(
-            0,
-            settings.chassisHeight * 0.75,
-            settings.chassisLength / 2 - settings.chassisLength / 3
-          );
-        }
-
-        // Update wheelInfos
-        vehicle.wheelInfos.forEach((wheel, index) => {
-          // Update wheel radius
-          wheel.radius = settings.wheelRadius;
-          wheel.suspensionStiffness = settings.suspensionStiffness;
-          wheel.suspensionRestLength = settings.suspensionRestLength;
-
-          // Update connection points
-          if (index === 0) {
-            // Front Left
-            wheel.chassisConnectionPointLocal.set(
-              settings.axleWidth,
-              0,
-              settings.frontAxlePosition
-            );
-          } else if (index === 1) {
-            // Front Right
-            wheel.chassisConnectionPointLocal.set(
-              -settings.axleWidth,
-              0,
-              settings.frontAxlePosition
-            );
-          } else if (index === 2) {
-            // Rear Left
-            wheel.chassisConnectionPointLocal.set(
-              settings.axleWidth,
-              0,
-              settings.rearAxlePosition
-            );
-          } else if (index === 3) {
-            // Rear Right
-            wheel.chassisConnectionPointLocal.set(
-              -settings.axleWidth,
-              0,
-              settings.rearAxlePosition
-            );
-          }
-        });
-
-        // Update wheel meshes
-        wheelMeshes.forEach((wheelMesh, index) => {
-          wheelMesh.geometry.dispose();
-          const wheelGeometry = new THREE.CylinderGeometry(
-            settings.wheelRadius,
-            settings.wheelRadius,
-            settings.wheelWidth,
-            32
-          );
-          wheelGeometry.rotateZ(Math.PI / 2);
-          wheelMesh.geometry = wheelGeometry;
-
-          // Update treads
-          const treads = wheelMesh.children.find(
-            (child) => child.type === "Group"
-          );
-          if (treads) {
-            treads.children.forEach((child) => {
-              child.geometry.dispose();
-            });
-            treads.clear();
-            const treadMaterial = new THREE.MeshStandardMaterial({
-              color: 0x111111,
-              roughness: 0.9,
-              metalness: 0.1,
-            });
-            const treadGeometry = new THREE.BoxGeometry(
-              0.1,
-              settings.wheelWidth,
-              ((settings.wheelRadius * 2 * Math.PI) / 20) * 0.7
-            );
-            for (let i = 0; i < 20; i++) {
-              const tread = new THREE.Mesh(treadGeometry, treadMaterial);
-              const angle = (i / 20) * Math.PI * 2;
-              tread.position.y = settings.wheelRadius * Math.cos(angle);
-              tread.position.z = settings.wheelRadius * Math.sin(angle);
-              tread.rotation.x = angle;
-              tread.rotation.z = Math.PI / 2;
-              treads.add(tread);
+    <script>
+        class Box {
+            constructor(size = 1, color = 0x00ff00) {
+                this.size = size;
+                this.color = color;
+                this.mesh = this.createMesh();
             }
-          }
-        });
-      }
 
-      function updateVisuals() {
-        chassisMesh.position.copy(chassisBody.position);
-        chassisMesh.quaternion.copy(chassisBody.quaternion);
-
-        for (let i = 0; i < vehicle.wheelInfos.length; i++) {
-          vehicle.updateWheelTransform(i);
-          const t = vehicle.wheelInfos[i].worldTransform;
-          wheelMeshes[i].position.copy(t.position);
-          wheelMeshes[i].quaternion.copy(t.quaternion);
-        }
-      }
-
-      function resetTruck() {
-        // Reset chassis body position, velocity, and rotation
-        chassisBody.position.set(0, 5, 0);
-        chassisBody.velocity.set(0, 0, 0);
-        chassisBody.angularVelocity.set(0, 0, 0);
-        chassisBody.quaternion.set(0, 0, 0, 1);
-
-        // Reset control inputs
-        forward = 0;
-        turn = 0;
-      }
-
-      // Controls
-      let forward = 0;
-      let turn = 0;
-
-      document.addEventListener("keydown", (event) => {
-        switch (event.key) {
-          case "ArrowUp":
-          case "w":
-            forward = -settings.maxForce;
-            break;
-          case "ArrowDown":
-          case "s":
-            forward = settings.maxForce;
-            break;
-          case "ArrowLeft":
-          case "a":
-            turn = settings.maxSteerVal;
-            break;
-          case "ArrowRight":
-          case "d":
-            turn = -settings.maxSteerVal;
-            break;
-        }
-      });
-
-      document.addEventListener("keyup", (event) => {
-        switch (event.key) {
-          case "ArrowUp":
-          case "w":
-          case "ArrowDown":
-          case "s":
-            forward = 0;
-            break;
-          case "ArrowLeft":
-          case "a":
-          case "ArrowRight":
-          case "d":
-            turn = 0;
-            break;
-        }
-      });
-
-      // Animation Loop
-      const timeStep = 1 / 60;
-      let lastTime;
-
-      function animate(time) {
-        requestAnimationFrame(animate);
-        if (lastTime !== undefined) {
-          const delta = (time - lastTime) / 1000;
-
-          vehicle.setSteeringValue(turn, 0);
-          vehicle.setSteeringValue(turn, 1);
-
-          for (let i = 0; i < vehicle.wheelInfos.length; i++) {
-            vehicle.applyEngineForce(forward, i);
-          }
-
-          world.step(timeStep, delta, 3);
-          updateVisuals();
-
-          // Camera follows the car at a fixed elevation and vertical angle
-          const carPosition = chassisMesh.position.clone();
-          const cameraDistance = settings.cameraDistance;
-          const cameraHeight = settings.cameraHeight;
-          const cameraOffset = new THREE.Vector3(
-            0,
-            cameraHeight,
-            cameraDistance
-          );
-
-          const cameraPosition = carPosition.clone().add(cameraOffset);
-          camera.position.lerp(cameraPosition, 0.1);
-          camera.lookAt(
-            new THREE.Vector3(carPosition.x, carPosition.y + 2, carPosition.z)
-          );
+            createMesh() {
+                const geometry = new THREE.BoxGeometry(this.size, this.size, this.size);
+                const material = new THREE.MeshBasicMaterial({ color: this.color, wireframe: true });
+                return new THREE.Mesh(geometry, material);
+            }
         }
 
-        if (settings.debug) {
-          cannonDebugger.update();
-        }
-        renderer.render(scene, camera);
-        lastTime = time;
-      }
-      animate();
-
-      // Handle Window Resize
-      window.addEventListener("resize", onWindowResize);
-      function onWindowResize() {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
+        // Set up the scene, camera, and renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
         renderer.setSize(window.innerWidth, window.innerHeight);
-      }
+        document.body.appendChild(renderer.domElement);
 
-      createVehicle();
+        // Create two instances of the Box class
+        const box1 = new Box(1, 0x00ff00);
+        const box2 = new Box(1, 0xff0000);
+        box2.mesh.position.x = 2;
+        scene.add(box1.mesh);
+        scene.add(box2.mesh);
+
+        // Position the camera
+        camera.position.z = 5;
+
+        // Set up dat.gui
+        const gui = new dat.GUI();
+        window.world = { gui }; // Add this line to create a global world object with gui
+
+        // Use expose function to control both boxes with the same sliders
+        expose([box1.mesh, box2.mesh], 'Boxes');
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            box1.mesh.rotation.y += 0.01;
+            box2.mesh.rotation.y += 0.01;
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Handle window resizing
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        function expose(objs, name = 'Objects') {
+            if (!Array.isArray(objs)) {
+                objs = [objs];
+            }
+
+            const folder = world.gui.addFolder(name);
+            const storageKey = `${name}_transform`;
+            const savedValues = JSON.parse(localStorage.getItem(storageKey) || '{}');
+
+            ['position', 'rotation', 'scale'].forEach(prop => {
+                ['x', 'y', 'z'].forEach(axis => {
+                    const name = `${prop.charAt(0).toUpperCase() + prop.slice(1)} ${axis.toUpperCase()}`;
+                    const controller = folder.add(objs[0][prop], axis, -10.0, 10.0, 0.01).name(name);
+
+                    if (savedValues[name] !== undefined) {
+                        objs.forEach(obj => {
+                            obj[prop][axis] = savedValues[name];
+                        });
+                        controller.updateDisplay();
+                    }
+
+                    controller.onChange(value => {
+                        objs.forEach(obj => {
+                            obj[prop][axis] = value;
+                        });
+                        savedValues[name] = value;
+                        localStorage.setItem(storageKey, JSON.stringify(savedValues));
+                    });
+                });
+            });
+            return objs;
+        }
     </script>
 </body>
-
 </html>
