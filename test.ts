@@ -3,8 +3,14 @@
 let key = "AIzaSyB0NhgGXtuTXHjuim3WrjCamcRucvVMOQk";
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { GoogleAICacheManager } from '@google/generative-ai/server';
+
 (async () => {
 // Sample text content (inline instead of uploading)
+
+
+
+
+
 let sampleText = `
 This is a sample text document.
 It contains multiple lines of text.
@@ -33,6 +39,8 @@ const fetchFilesFromBuildTypes = () => {
   
   const getFilesRecursively = (dir) => {
     return fs.readdirSync(dir).flatMap(file => {
+
+
       const filePath = path.join(dir, file);
       return fs.statSync(filePath).isDirectory() 
         ? getFilesRecursively(filePath) // Recurse into subdirectory

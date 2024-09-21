@@ -112,6 +112,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/dat.gui@^0.7.13":
+  version "0.7.13"
+  resolved "https://registry.npmjs.org/@types/dat.gui/-/dat.gui-0.7.13.tgz"
+  integrity sha512-LmG4Pr0mbsB/1WVttf8xaHx45BvSBDGY5D9+0/9AZCbI4vvOguwBHZdKyJMxt5Yst8+icRSHKmr7ClV2u5ZtDA==
+
 "@types/estree@^1.0.5":
   version "1.0.5"
   resolved "https://registry.npmjs.org/@types/estree/-/estree-1.0.5.tgz"

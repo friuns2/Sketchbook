@@ -85,33 +85,12 @@ class BaseObject extends THREE.Object3D {
                 break;
             case 'convex':
             case 'concave':
-                let vertices = [];
-                let indices = [];
-                model.traverse((child) => {
-                    if (child.isMesh) {
-                        const positions = child.geometry.attributes.position.array;
-                        const vertexCount = positions.length / 3;
-                        for (let i = 0; i < vertexCount; i++) {
-                            vertices.push(new CANNON.Vec3(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]));
-                        }
-                        if (child.geometry.index) {
-                            indices = indices.concat(Array.from(child.geometry.index.array));
-                        } else {
-                            for (let i = 0; i < vertexCount; i += 3) {
-                                indices.push(i, i + 1, i + 2);
-                            }
-                        }
-                    }
-                });
-                if (colliderMeshType === 'convex') {
-                    shape = new CANNON.ConvexPolyhedron({ vertices: vertices, faces: indices });
-                } else {
-                    shape = new CANNON.Trimesh(vertices, indices);
-                }
-                break;
+
             case 'none':
+                colliderMeshType = 'none';
                 shape = null;
                 break;
+
             case 'box':
             default:
                 shape = new CANNON.Box(new CANNON.Vec3(size.x, size.y, size.z));
@@ -125,18 +104,18 @@ class BaseObject extends THREE.Object3D {
         if (colliderMeshType === 'none') {
             this.body = null;
         } else {
-            this.body = new CANNON.Body(log({
+            this.body = new CANNON.Body({
                 mass: mass,
-                position: new CANNON.Vec3(this.centerOffset.x, this.centerOffset.y, this.centerOffset.z),
-                shape: shape,
-                material: defaultMaterial,
-
                 type: type,
-            }));
+                material: defaultMaterial,
+            });
+            
+            // Add shape with offset
+            this.body.addShape(shape, new CANNON.Vec3(this.centerOffset.x, this.centerOffset.y, this.centerOffset.z));
             
             this.body.material.friction = 0.5;
             setTimeout(() => {
-                this.body.addEventListener('collide', (event)=>this.onCollide(event));
+                this.body.addEventListener('collide', (event) => this.onCollide(event));
             }, 100);
         }
     }
@@ -186,20 +165,14 @@ class BaseObject extends THREE.Object3D {
         let rotation = this.quaternion;
 
         if (this.executeOneTime || !position.equals(this.oldPosition) || !rotation.equals(this.oldQuaternion)) {
-
             // Object has been moved externally, update the physics body
-            const rotatedOffset = this.centerOffset.clone().applyQuaternion(rotation);
-            this.body.position.copy(Utils.cannonVector(position.clone().add(rotatedOffset)));
+            this.body.position.copy(Utils.cannonVector(position));
             this.body.quaternion.copy(Utils.cannonQuat(rotation));
             this.body.updateMassProperties();
-
         } else {
             // Update object based on physics body
-            const bodyPosition = Utils.threeVector(this.body.position);
-            const bodyRotation = Utils.threeQuat(this.body.quaternion);
-            const rotatedOffset = this.centerOffset.clone().applyQuaternion(bodyRotation);
-            this.position.copy(bodyPosition.sub(rotatedOffset));
-            this.quaternion.copy(bodyRotation);
+            this.position.copy(Utils.threeVector(this.body.position));
+            this.quaternion.copy(Utils.threeQuat(this.body.quaternion));
         }
 
         this.oldPosition.copy(position);

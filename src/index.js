@@ -118,12 +118,7 @@ let chat = {
     },
     onClickError(){
         this.inputText = this.params.lastText + ' \nPrevious attempt Error: ' + this.variant.lastError.message + ", do not make it again!";
-    },
-    async undoLastAction() {
-
-        this.messageLog.pop();
-        this.inputText = this.messageLog[this.messageLog.length - 1]?.user || '';
-    },
+    },    
     async Clear() {
         this.variant.content = '';
         const scriptContent = await fetch("src/" + settings.codeFile).then(response => response.text());
@@ -143,9 +138,12 @@ let chat = {
         this.abortController?.abort();
         this.abortController = new AbortController();    
         this.isLoading = true;
+        if(this.variant == this.variants[0])
+            this.messageLog.pop();
         
         // Read file names from paths.txt that start with src\ts
         const response = await fetch('paths.txt');
+
         const pathsContent = await response.text();
         const srcTsFiles = pathsContent.split('\n')
             .filter(path => path.trim().startsWith('src\\ts'))

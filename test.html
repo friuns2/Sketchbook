@@ -16,11 +16,11 @@
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
-</head>
+    </head>
+    
+    <body>
+        <script>
 
-<body>
-    <script>
-        (function () {
             class Box {
                 constructor(size = 1, color = 0x00ff00) {
                     this.size = size;
@@ -54,17 +54,22 @@
 
             // Set up dat.gui
             const gui = new dat.GUI();
+            gui.remember(true);
             window.world = { gui }; // Add this line to create a global world object with gui
 
-            // Use expose function to control both boxes with the same sliders
-            expose(box1.mesh, 'Box');
-            expose(box2.mesh, 'Box');
+            // Add a range slider for controlling the rotation speed
+            const rotationControl = {
+                speed: 0.01
+            };
+
+            gui.add(rotationControl, 'speed', 0, 0.1, 0.001).name('Rotation Speed');
+            gui.remember(rotationControl); // Remember the rotation speed
 
             // Animation loop
             function animate() {
                 requestAnimationFrame(animate);
-                box1.mesh.rotation.y += 0.01;
-                box2.mesh.rotation.y += 0.01;
+                box1.mesh.rotation.y += rotationControl.speed; // Apply rotation speed
+                box2.mesh.rotation.y += rotationControl.speed; // Apply rotation speed
                 renderer.render(scene, camera);
             }
 
@@ -77,48 +82,7 @@
                 renderer.setSize(window.innerWidth, window.innerHeight);
             });
 
-        // Add a range slider for controlling the rotation speed
-        const rotationControl = {
-            speed: 0.01
-        };
-
-        gui.add(rotationControl, 'speed', 0, 0.1, 0.001).name('Rotation Speed');
-
-        
-
-        })();
-        function expose(obj, name = obj.name) {
-            const folder = world.gui.__folders[name] || world.gui.addFolder(name);
-            const storageKey = `${name}_transform`;
-            const savedValues = JSON.parse(localStorage.getItem(storageKey) || '{}');
-
-            world.namedObjects = world.namedObjects || {};
-            world.namedObjects[name] = world.namedObjects[name] || [];
-            world.namedObjects[name].push(obj);
-
-            ['position', 'rotation', 'scale'].forEach(prop => {
-                ['x', 'y', 'z'].forEach(axis => {
-                    const controlName = `${prop.charAt(0).toUpperCase() + prop.slice(1)} ${axis.toUpperCase()}`;
-                    let controller = folder.__controllers.find(c => c.property === axis && c.__li.innerText.includes(controlName)) ||
-                                     folder.add(obj[prop], axis, -10.0, 10.0, 0.01).name(controlName);
-
-                    controller.object = obj[prop];
-
-                    if (savedValues[controlName] !== undefined) {
-                        obj[prop][axis] = savedValues[controlName];
-                        controller.updateDisplay();
-                    }
-
-                    controller.onChange(value => {
-                        savedValues[controlName] = value;
-                        localStorage.setItem(storageKey, JSON.stringify(savedValues));
-                        world.namedObjects[name].forEach(namedObj => namedObj[prop][axis] = value);
-                    });
-                });
-            });
-            return obj;
-        }
-    </script>
-</body>
-
-</html>
+        </script>
+    </body>
+    
+    </html>

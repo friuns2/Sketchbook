@@ -11,7 +11,8 @@ import { FXAAShader  } from 'three/examples/jsm/shaders/FXAAShader';
 
 import { Detector } from '../../lib/utils/Detector';
 import { Stats } from '../../lib/utils/Stats';
-import * as GUI from '../../lib/utils/dat.gui';
+import * as dat from '../../lib/utils/dat.gui';
+
 import { CannonDebugRenderer } from '../../lib/cannon/CannonDebugRenderer';
 import * as _ from 'lodash';
 
@@ -512,10 +513,12 @@ export class World
 		document.body.appendChild(this.renderer.domElement);
 		this.renderer.domElement.id = 'canvas';
 	}
-	public gui : GUI;
+	public gui : dat.GUI;
 	private createParamsGUI(scope: World): void
 	{
 		
+
+				
 		this.params = {
 			Pointer_Lock: true,
 			Mouse_Sensitivity: 0.3,
@@ -528,7 +531,7 @@ export class World
 			Sun_Rotation: 145,
 		};
 
-		const gui = this.gui = new GUI.GUI();
+		const gui = this.gui = new dat.GUI();
 
 		// Scenario
 		this.scenarioGUIFolder = gui.addFolder('Scenarios');

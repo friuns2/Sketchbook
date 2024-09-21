@@ -27,13 +27,3 @@ div.swal2-footer {
 	justify-content: space-evenly;
 }
 
-.button {
-	opacity: 0;
-	background: black;
-	padding: 12px 15px 12px 15px;
-	font-family: "Cutive Mono", monospace;
-	font-size: 1.2rem;
-	border: none;
-	color: white;
-	cursor: pointer;
-}

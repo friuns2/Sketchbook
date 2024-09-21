@@ -122,13 +122,14 @@ function SaveState() {
         reset: [],
         graphicsWorld: world.graphicsWorld.children.slice(),
         physicsWorld: world.physicsWorld.bodies.slice(),
-        updatables:world.updatables.slice(),
-        characters:world.characters.slice(),
-        vehicles:world.vehicles.slice(),
-        folders: {...world.gui.__folders}
-//        player:player
+        updatables: world.updatables.slice(),
+        characters: world.characters.slice(),
+        vehicles: world.vehicles.slice(),
+        folders: {...world.gui.__folders},
+        controllers: {...world.gui.__controllers}
     };
     const appendedElements = new Set();
+
     const originalAppendChild = document.body.appendChild;
     document.body.appendChild = function (...args) {
         const element = originalAppendChild.apply(this, args);
@@ -145,7 +146,7 @@ function SaveState() {
         return id;
     };    
 
-    globalThis.ResetState =function() {    
+    globalThis.ResetState = function() {    
         appendedElements.forEach(element => element.parentNode?.removeChild(element));
         appendedElements.clear();
         world.graphicsWorld.children.length = 0;
@@ -158,11 +159,18 @@ function SaveState() {
         world.characters.push(...snapshot.characters);
         world.vehicles.length = 0;
         world.vehicles.push(...snapshot.vehicles);
-        world.timeScaleTarget=1;
-        Object.keys(world.gui.__folders).forEach(key => {
+        world.timeScaleTarget = 1;
+        Object.keys(world.gui.__folders).reverse().forEach(key => {
             if (!snapshot.folders[key]) {
                 world.gui.removeFolder(world.gui.__folders[key]);
+
             }
+        });
+
+        Object.keys(world.gui.__controllers).reverse().forEach(key => {
+            if(!snapshot.controllers[key] && world.gui.__controllers[key])
+                world.gui.remove(world.gui.__controllers[key]);
+
         });
         snapshot.reset.reverse().forEach(reset => reset());
         snapshot.reset = [];
@@ -170,8 +178,8 @@ function SaveState() {
         setIntervals.forEach(id => clearInterval(id));
         setIntervals.clear();
     }
-        
 }
+
 
 
 

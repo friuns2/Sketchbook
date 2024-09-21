@@ -1,4 +1,3 @@
-
 export {};
 
 // IMPORTANT: Always use function AutoScale(model: any, approximateSizeInMeters: number) to scale the model
@@ -20,14 +19,11 @@ class Player extends Character {
 
 //#region Main Function
 async function main() {
-    
-    
     const world = new World();
     await world.initialize('build/assets/world.glb');
-    
+
     const textPrompt: HTMLDivElement = document.createElement('div');
     textPrompt.style.cssText = "position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);";
-
     document.body.appendChild(textPrompt);
 
     const playerModel = await loadAsync('build/assets/boxman.glb');
@@ -41,7 +37,6 @@ async function main() {
     world.gui.add(player, "moveSpeed").name("Player Speed").min(0).max(10).step(0.1);
     player.setPosition(0, 0, -5);
     world.add(player);
-    
 
     player.takeControl();
 
@@ -54,15 +49,13 @@ async function main() {
 
     for (let i = 0; i < numTrees; i++) {
 
-
-
         const randomX = Math.random() * 50 - 25; // Adjust the range for X position
         const randomZ = Math.random() * 50 - 25; // Adjust the range for Z position
         const randomScale = Math.random() + 0.5; // Adjust the range for tree size based on treeSize
         
 
         const treeClone = treeModel.scene.clone();
-        AutoScale(treeClone, 10); // Scale tree based on treeSize
+        AutoScale(treeClone, treeSizeControl.getValue()); // Scale tree based on treeSize
 
 
         let tree = new BaseObject(treeClone, 0, 'none', CANNON.Body.STATIC); // No mass for the trees
