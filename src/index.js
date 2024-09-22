@@ -279,8 +279,8 @@ let chat = {
                 this.messageLog.push({ user: this.params.lastText });
             }
         } catch (e) {
-            if (e.name == 'AbortError')
-                return;
+            if (e.name != 'AbortError')
+                console.error(e);
             this.switchVariant(0);
         } finally {
             this.abortController = null;

@@ -66,8 +66,10 @@ class BaseObject extends THREE.Object3D {
      * @param {('box'|'sphere'|'convex'|'concave'|'none')} [colliderMeshType='box'] - The type of collider and mesh to use.
      * @param {CANNON.Body.Type} [type=CANNON.Body.STATIC] - The type of the physics body.
      */
-    constructor(model, mass = 1, colliderMeshType = 'box', type = mass > 0 ? CANNON.Body.DYNAMIC : CANNON.Body.STATIC) {
+    constructor(model, mass = 1, colliderMeshType = mass > 0 ? 'box' : 'none', type = mass > 0 ? CANNON.Body.DYNAMIC : CANNON.Body.STATIC) {
         super();
+        
+        model = model.clone();
         const bbox = new THREE.Box3().setFromObject(model);
 
         const size = bbox.getSize(new THREE.Vector3()).multiplyScalar(0.5);

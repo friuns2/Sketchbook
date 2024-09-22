@@ -22,6 +22,7 @@ CANNON.Body = (function(Body) {
 
 THREE.Object3D.prototype.clone = (function (originalClone) {
     return function () {
+        
         let oldClone = this.clone;
         this.clone = originalClone;
         let clone = SkeletonUtils.clone(this);
