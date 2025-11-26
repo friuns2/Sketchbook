@@ -2,6 +2,73 @@
 
 3D playground built on three.js and cannon.js with AI-powered content generation.
 
+**Transform your game ideas into reality with our revolutionary AI game creator. No coding required - just describe your vision and watch it come to life.**
+
+## Demo Videos
+
+### Featured YouTube Demo
+**Creating forest with talking ogre using AI**
+
+Watch how AI brings a fantasy forest scene to life with an interactive talking ogre character:
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/JmRra54vYGU" title="Creating forest with talking ogre using AI" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+### Additional Demo Videos
+
+- **2player.mp4** - Two-player gameplay demo
+  <video width="560" height="315" controls>
+    <source src="./videos/2player.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+
+- **carbazoka.mp4** - Car bazooka action demo
+  <video width="560" height="315" controls>
+    <source src="./videos/carbazoka.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+
+- **football.mp4** - Football game demo
+  <video width="560" height="315" controls>
+    <source src="./videos/football.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+
+- **halloween.mp4** - Halloween themed game
+  <video width="560" height="315" controls>
+    <source src="./videos/halloween.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+
+- **mikey.mp4** - Character demo
+  <video width="560" height="315" controls>
+    <source src="./videos/mikey.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+
+- **minecraft.mp4** - Minecraft-style gameplay
+  <video width="560" height="315" controls>
+    <source src="./videos/minecraft.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+
+- **particles.mp4** - Particle effects showcase
+  <video width="560" height="315" controls>
+    <source src="./videos/particles.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+
+- **racing.mp4** - Racing game demo
+  <video width="560" height="315" controls>
+    <source src="./videos/racing.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+
+- **zombies.mp4** - Zombie game demo
+  <video width="560" height="315" controls>
+    <source src="./videos/zombies.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+
 ## Quick Start
 
 ```bash
