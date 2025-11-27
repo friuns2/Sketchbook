@@ -39,9 +39,9 @@ let chat = {
         ['add lambourgini', 'setup car doors and wheels'],
         ['add second player','make the second player use different keys', 'make the second player shoot'],
         ['create car with rocket launcher on top', 'create the bullets that the launcher shoots', 'make the bullets explode on impact'],
-        ['I want the player to shoot bullets from the rocket launcher.','bullets should explode when they hit something','change the explosion to be more visually impressive.'], 
+        ['I want the player to shoot bullets from the rocket launcher.','bullets should explode when they hit something','change the explosion to be more visually impressive.'],
         ['create cubes with left mouse button', 'remove cubes with right mouse button','add physics to cubes'], 'make pistol shoot, bullets, kill zombie when hit'],
-    get isLoading(){ 
+    get isLoading(){
         return this.abortController && !this.abortController.signal.aborted
      },
     params: {
@@ -149,7 +149,7 @@ let chat = {
             this.suggestions.push(this.suggestions[index]);
             this.suggestions.splice(index, 1);
         }
-        
+
 
         this.params.lastText = this.inputText || this.params.lastText;
         if (!this.inputText) {
@@ -163,7 +163,7 @@ let chat = {
         });
         this.abortController?.abort();
         let abortController = this.abortController = new AbortController();
-        
+
         if (this.variant == this.variants[0])
             this.messageLog.pop();
 
@@ -186,7 +186,7 @@ let chat = {
                 'build/types/core/CameraOperator.d.ts',
                 'build/types/vehicles/Car.d.ts',
                 'build/types/core/KeyBinding.d.ts',
-                //'src/ts/enums/CharacterAnimations.ts',                
+                //'src/ts/enums/CharacterAnimations.ts',
                 'src/ts/characters/character_ai/FollowTarget.ts',
                 'src/ts/characters/character_ai/RandomBehaviour.ts',
             ]
@@ -196,7 +196,7 @@ let chat = {
                 //'src/ts/core/InputManager.ts',
 
                 //'src/examples/rocketLauncher.md',
-                //...(await fetchFilesFromDir('src/examples','js')),                
+                //...(await fetchFilesFromDir('src/examples','js')),
                 //  ...(await fetchFilesFromDir('src/examples', 'md'))
                 'src/main/helpers/helpers.js',
                 'src/main/examples/rocketLauncher.ts',
@@ -245,7 +245,7 @@ let chat = {
             const previousUserMessages = chat.messageLog.length && ("<Previous_user_messages>\n" + chat.messageLog
                 .map(msg => msg.user)
                 .join('\n') + "\n</Previous_user_messages>");
-            
+
             this.variants[0] = this.variant;
             this.currentVariant = 0;
             this.variants.length = 1;
@@ -259,7 +259,72 @@ let chat = {
                 let botMessage = new BotMessage();
                     botMessage.model = model;
                     botMessage.processing = true;
+                    // Initialize botMessage files with a copy of current files to allow safe editing
+                    botMessage.files = (i == 1 ? this.variants[0].files : this.variant.files).map(f => new VariantFile(f.name, f.content));
                     this.variants[i] = botMessage;
+
+                // Define the functions for the LLM
+                const functions = [
+                    {
+                        name: "find_symbol",
+                        description: "Finds the definition of a symbol (class, function, variable) in the code.",
+                        parameters: {
+                            type: "object",
+                            properties: {
+                                symbol_name: {
+                                    type: "string",
+                                    description: "The name of the symbol to find."
+                                },
+                                file_path: {
+                                    type: "string",
+                                    description: "The path of the file to search in (optional)."
+                                }
+                            },
+                            required: ["symbol_name"]
+                        }
+                    },
+                    {
+                        name: "find_referencing_symbols",
+                        description: "Finds all references to a symbol in the code.",
+                        parameters: {
+                            type: "object",
+                            properties: {
+                                symbol_name: {
+                                    type: "string",
+                                    description: "The name of the symbol to find references for."
+                                },
+                                file_path: {
+                                    type: "string",
+                                    description: "The path of the file to search in (optional)."
+                                }
+                            },
+                            required: ["symbol_name"]
+                        }
+                    },
+                    {
+                        name: "insert_after_symbol",
+                        description: "Inserts code after the definition block of a specified symbol.",
+                        parameters: {
+                            type: "object",
+                            properties: {
+                                symbol_name: {
+                                    type: "string",
+                                    description: "The name of the symbol after which to insert the code."
+                                },
+                                code_to_insert: {
+                                    type: "string",
+                                    description: "The code snippet to insert."
+                                },
+                                file_path: {
+                                    type: "string",
+                                    description: "The path of the file to edit (optional)."
+                                }
+                            },
+                            required: ["symbol_name", "code_to_insert"]
+                        }
+                    }
+                ];
+
                 for (let retry = 0; retry < 5; retry++)
                 {
                     const response = await getChatGPTResponse({
@@ -277,23 +342,57 @@ let chat = {
                                     //  await fetchAndProcessFiles(examples) +
                                     Object.entries(glbFiles).map(([name, file]) => `<file name="${name}">\n${file.content}\n</file>`).join('\n\n')
                             },
-                            //...(await fetchAndProcessFiles(srcTsFiles)).map(a => ({ role: "system", content: `<file name="${a.name}">\n${a.content}\n</file>` })),                        
-                            { role: "user", content: `${previousUserMessages}\n\nCurrent code:\n\`\`\`typescript\n${code}\n\`\`\`\n\n${settings.importantRules}Rewrite current code to accomplish user complain: ${this.params.lastText}` },
+                            //...(await fetchAndProcessFiles(srcTsFiles)).map(a => ({ role: "system", content: `<file name="${a.name}">\n${a.content}\n</file>` })),
+                            { role: "user", content: `${previousUserMessages}\n\nCurrent code:\n\`\`\`typescript\n${code}\n\`\`\`\n\n${settings.importantRules}Rewrite current code to accomplish user complain: ${this.params.lastText}\nYou can also use tools to find symbols and insert code.` },
                             //{ role: "user", content: `Improve last user complain create plan how you would implement it` },
                             //{ role: "user", content: `Reflect write chain of though how you failed to implement code and what you need to implement it correctly` },
 
                             //Understanding the Problem,Thinking through a Solution, breakdown of the challenges
                         ],
+                        functions: functions,
                         signal: abortController.signal
                     });
 
                     try {
+                        let functionCall = null;
                         for await (const chunk of response) {
-                            botMessage.content = chunk.message.content;
-                            if (this.currentVariant ==1)
-                                this.floatingCode = botMessage.content;
+                            if (chunk.message && chunk.message.function_call) {
+                                functionCall = chunk.message.function_call;
+                            } else {
+                                botMessage.content = chunk.message.content;
+                                if (this.currentVariant ==1)
+                                    this.floatingCode = botMessage.content;
+                            }
                         }
-                        if(!botMessage.content) continue;
+
+                        if (functionCall) {
+                            console.log("Function call received:", functionCall);
+                            const args = JSON.parse(functionCall.arguments);
+                            let result = "";
+                            if (globalThis.fileEditingTools && globalThis.fileEditingTools[functionCall.name]) {
+                                // Pass arguments explicitly by name and include botMessage as contextVariant
+                                if (functionCall.name === "find_symbol") {
+                                    result = globalThis.fileEditingTools.find_symbol(args.symbol_name, args.file_path, botMessage);
+                                } else if (functionCall.name === "find_referencing_symbols") {
+                                    result = globalThis.fileEditingTools.find_referencing_symbols(args.symbol_name, args.file_path, botMessage);
+                                } else if (functionCall.name === "insert_after_symbol") {
+                                    result = globalThis.fileEditingTools.insert_after_symbol(args.symbol_name, args.code_to_insert, args.file_path, botMessage);
+                                }
+                            } else {
+                                result = "Function not found.";
+                            }
+
+                            botMessage.content += `\n\n[Tool used: ${functionCall.name}]\nResult: ${result}`;
+                            if (functionCall.name === 'insert_after_symbol') {
+                                // Update the botMessage content to reflect the modified file content
+                                // Assuming single file for now
+                                if (botMessage.files.length > 0) {
+                                     botMessage.content = botMessage.files[0].content;
+                                }
+                            }
+                        }
+
+                        if(!botMessage.content && !functionCall) continue;
                     } catch (e) {
                         console.log(e);
                         continue;
@@ -310,7 +409,7 @@ let chat = {
 
                     if (abort)
                         return;
-                    
+
                     let variant = this.variants[i];
                     //#region SwitchVariant
                     try{
@@ -319,7 +418,7 @@ let chat = {
                     catch(e)
                     {
                         console.error(e);
-                        
+
                     }
                     //#endregion
                     let startTime = Date.now();
