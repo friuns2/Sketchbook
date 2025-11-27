@@ -20,6 +20,10 @@ Built on the robust foundation of **Three.js** for rendering and **Cannon.js** f
 
 ---
 
+**🎮 Live Demo**: [Play Online](https://friuns2.github.io/Sketchbook/)
+
+**📱 Download APK**: [Latest Release](https://github.com/friuns2/Sketchbook/releases/latest)
+
 ## AI Generated Showcase
 
 **Every demo below was created solely by prompting the AI.**
