@@ -54,6 +54,8 @@ window.editorApp = new Vue({
                 codeEditor = monaco.editor.create(document.getElementById('editorElement'), {
                     language: 'typescript',
                     theme: 'vs-dark',
+                    quickSuggestions: false,
+                    suggestOnTriggerCharacters: false,
                     //readOnly: globalThis.isMobile, // Make editor readonly if on mobile
                     // Add the following line to disable the F12 key override
                    // contextmenu: false,
