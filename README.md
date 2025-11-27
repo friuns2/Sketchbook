@@ -4,26 +4,22 @@
 
 **Transform your game ideas into reality with our revolutionary AI game creator. No coding required - just describe your vision and watch it come to life.**
 
-## Demo Videos
+## Watch how AI brings a fantasy forest scene to life with an interactive talking ogre character:
 
-### Featured YouTube Demo
-**Creating forest with talking ogre using AI**
+https://github.com/user-attachments/assets/c269e842-af3a-4074-90cd-7d830c08ddbf
 
-Watch how AI brings a fantasy forest scene to life with an interactive talking ogre character:
-
-[![Creating forest with talking ogre using AI](https://img.youtube.com/vi/JmRra54vYGU/maxresdefault.jpg)](https://www.youtube.com/watch?v=JmRra54vYGU)
 
 ### Additional Demo Videos
 
-- **[2player.mp4](videos/2player.mp4)** - Two-player gameplay demo
-- **[carbazoka.mp4](videos/carbazoka.mp4)** - Car bazooka action demo
-- **[football.mp4](videos/football.mp4)** - Football game demo
-- **[halloween.mp4](videos/halloween.mp4)** - Halloween themed game
-- **[mikey.mp4](videos/mikey.mp4)** - Character demo
-- **[minecraft.mp4](videos/minecraft.mp4)** - Minecraft-style gameplay
-- **[particles.mp4](videos/particles.mp4)** - Particle effects showcase
-- **[racing.mp4](videos/racing.mp4)** - Racing game demo
-- **[zombies.mp4](videos/zombies.mp4)** - Zombie game demo
+- **[2player.mp4](https://github.com/user-attachments/assets/2820a003-fe04-4991-8da4-d586fba6340b)** - Two-player gameplay demo
+- **[carbazoka.mp4](https://github.com/user-attachments/assets/174439e5-7e38-48a9-a5db-a696a44b346a)** - Car bazooka action demo
+- **[football.mp4](https://github.com/user-attachments/assets/89767c20-cb88-4522-b68a-086ebf6cbf20)** - Football game demo
+- **[halloween.mp4](https://github.com/user-attachments/assets/83c98a8b-0db7-4fbc-9368-9ca356c39fb8)** - Halloween themed game
+- **[mikey.mp4](https://github.com/user-attachments/assets/bafb82d3-600d-4f7d-a40c-3bee0c757c88)** - Character demo
+- **[minecraft.mp4](https://github.com/user-attachments/assets/5c4e0de8-1b8f-4416-a452-536ad3279790)** - Minecraft-style gameplay
+- **[particles.mp4](https://github.com/user-attachments/assets/e6587e2c-3bcc-4abb-8a21-f19a770c1bf4)** - Particle effects showcase
+- **[racing.mp4](https://github.com/user-attachments/assets/ac41d7ad-f710-4d06-b6a7-be7ceda86619)** - Racing game demo
+- **[zombies.mp4](https://github.com/user-attachments/assets/624d1793-f9e5-4734-ad86-9dfec28250da)** - Zombie game demo
 
 ## Quick Start
 
