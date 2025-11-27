@@ -606,9 +606,21 @@ export class World
 							fetch(file)
 								.then(response => response.text())
 								.then(content => {
-									// Update editor content
-									if ((globalThis as any).chat && (globalThis as any).chat.variant && (globalThis as any).chat.variant.files) {
-										(globalThis as any).chat.variant.files[0].content = content;
+									const chat = (globalThis as any).chat;
+									if (chat) {
+										// Switch to variant 1 (Page 1)
+										if (chat.switchVariant) {
+											chat.switchVariant(1);
+										}
+
+										// Ensure variant 1 has files
+										if (chat.variants && chat.variants[1]) {
+											if (!chat.variants[1].files || chat.variants[1].files.length === 0) {
+												// Initialize files if missing (using VariantFile class if available, or mock object)
+												chat.variants[1].files = [{ name: 'script.js', content: '' }];
+											}
+											chat.variants[1].files[0].content = content;
+										}
 									}
 
 									// Update editor UI if available
