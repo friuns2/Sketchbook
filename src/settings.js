@@ -6,6 +6,7 @@ let settings = {
 
     apiKey: "sk-XyMEqVpNCa0YtYDE3u9MLlNvO5R28tbHaM2J629rzDE5LZnjhweCR4M20dbMKbcX",
     apiUrl: "https://opencode-cors-proxy.brutal.workers.dev",
+    provider: "custom",
     enableBreakpoints:false,
     showAPIRequestXML:false,
     localSrc: "C:/Users/friuns/Documents/Sketchbook/src/main/examples",
@@ -14,7 +15,9 @@ let settings = {
         "grok-code",
         "big-pickle",
         "grok-code"
-    ]
+    ],
+    availableModels: [],
+    selectedModel: "grok-code"
 /*
     rules: `You will help write javascript code for a 3D game. 
 App description: GTA style 3D game

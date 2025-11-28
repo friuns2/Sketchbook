@@ -93,6 +93,76 @@ let chat = {
                 settings.showAPIRequestXML = value;
             });
 
+            const aiFolder = world.gui.addFolder('AI Settings');
+            aiFolder.add(settings, 'apiKey').name('API Key');
+
+            const apiUrlController = aiFolder.add(settings, 'apiUrl').name('API URL');
+
+            const updateApiUrl = () => {
+                if (settings.provider === 'openrouter') {
+                    settings.apiUrl = 'https://openrouter.ai/api/v1';
+                } else if (settings.provider === 'custom') {
+                     if (settings.apiUrl === 'https://openrouter.ai/api/v1') {
+                         settings.apiUrl = "https://opencode-cors-proxy.brutal.workers.dev";
+                     }
+                }
+                apiUrlController.updateDisplay();
+            };
+
+            aiFolder.add(settings, 'provider', ['custom', 'openrouter']).name('Provider').onChange(updateApiUrl);
+
+            let modelController = null;
+
+            const modelSettings = {
+                fetchModels: async () => {
+                    let url = settings.apiUrl;
+                    if (url.endsWith('/')) url = url.slice(0, -1);
+                    url = url + '/models';
+
+                    try {
+                        const response = await fetch(url, {
+                            headers: {
+                                'Authorization': `Bearer ${settings.apiKey}`
+                            }
+                        });
+
+                        if (!response.ok) {
+                             throw new Error(await response.text());
+                        }
+
+                        const data = await response.json();
+                        if (data.data && Array.isArray(data.data)) {
+                             settings.availableModels = data.data.map(m => m.id).sort();
+                             updateModelController();
+                        } else {
+                            alert('No models found in response');
+                        }
+                    } catch (e) {
+                        alert('Error fetching models: ' + e.message);
+                    }
+                }
+            };
+
+            aiFolder.add(modelSettings, 'fetchModels').name('Fetch Models');
+
+            function updateModelController() {
+                if (modelController) {
+                    aiFolder.remove(modelController);
+                }
+
+                if (settings.availableModels.length > 0) {
+                     modelController = aiFolder.add(settings, 'selectedModel', settings.availableModels).name('Model').onChange(value => {
+                         settings.batchRequests = [value];
+                     });
+                } else {
+                    modelController = aiFolder.add(settings, 'selectedModel').name('Model').onChange(value => {
+                        settings.batchRequests = [value];
+                    });
+                }
+            }
+
+            updateModelController();
+
 
             //world.timeScaleTarget=0
             Eval(this.variant.files[0].content);
